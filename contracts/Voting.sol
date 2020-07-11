@@ -21,9 +21,8 @@ contract Voting is IForwarder, AragonApp {
     bytes32 public constant MODIFY_SUPPORT_ROLE = keccak256("MODIFY_SUPPORT_ROLE");
     bytes32 public constant MODIFY_QUORUM_ROLE = keccak256("MODIFY_QUORUM_ROLE");
 
-    bytes32 public constant SET_TOKEN_ROLE = 0x9b27b5f34c38cd0d691143dc6188f9aa90e75f5e87b428e9315e822224da1dd2; //keccak256("SET_TOKEN_ROLE")
-    bytes32 public constant SET_MIN_BALANCE_ROLE = 0xb1f3f26f63ad27cd630737a426f990492f5c674208299d6fb23bb2b0733d3d66; //keccak256("SET_MIN_BALANCE_ROLE")
-    bytes32 public constant SET_MIN_TIME_ROLE = 0xe7ab0252519cd959720b328191bed7fe61b8e25f77613877be7070646d12daf0; //keccak256("SET_MIN_TIME_ROLE")
+    bytes32 public constant SET_MIN_BALANCE_ROLE = keccak256("SET_MIN_BALANCE_ROLE"); //keccak256("SET_MIN_BALANCE_ROLE")
+    bytes32 public constant SET_MIN_TIME_ROLE = keccak256("SET_MIN_TIME_ROLE"); //keccak256("SET_MIN_TIME_ROLE")
 
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
@@ -90,12 +89,6 @@ contract Voting is IForwarder, AragonApp {
     modifier minTimeCheck(uint256 _minTime) {
         require(_minTime >= 43200 && _minTime <= 1209600, "Min time can't be less than half a day and more than 2 weeks");
         _;
-    }
-
-    function constructor() public {
-        assert(SET_TOKEN_ROLE == keccak256("SET_TOKEN_ROLE"));
-        assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
-        assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
     }
 
     /**

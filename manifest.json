@@ -1,0 +1,6 @@
+{
+  "name": "Curve Aragon Voting fork",
+  "author": "Curve fork of Aragon Association",
+  "description": "Create and participate in votes with min balance check, min time between creating new votes check, disallowing changing votes and incentiviting early voting",
+  "source_url": "https://github.com/pengiundev/curve-aragon-voting",
+}
