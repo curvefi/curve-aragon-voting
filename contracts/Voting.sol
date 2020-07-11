@@ -273,7 +273,7 @@ contract Voting is IForwarder, AragonApp {
     }
 
     function canCreateNewVote() public returns(bool) {
-        return token.balanceOf(msg.sender) > minBalance &&  block.timestamp.sub(minTime) > lastCreateVoteTimes[msg.sender];
+        return token.balanceOf(msg.sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[msg.sender];
     }
 
     /**
