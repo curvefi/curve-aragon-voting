@@ -83,12 +83,12 @@ contract Voting is IForwarder, AragonApp {
 
     modifier minBalanceCheck(uint256 _minBalance) {
         //_minBalance to be at least the equivalent of 10k locked for a year
-        require(_minBalance > uint256(10000).mul(31536000), "Not enough min balance");
+        require(_minBalance >= uint256(10000).mul(31536000), "Not enough min balance");
         _;
     }
 
     modifier minTimeCheck(uint256 _minTime) {
-        require(_minTime > 43200 && _minTime < 1209600, "Min time can't be less than half a day and more than 2 weeks");
+        require(_minTime >= 43200 && _minTime <= 1209600, "Min time can't be less than half a day and more than 2 weeks");
         _;
     }
 
