@@ -83,7 +83,7 @@ contract Voting is IForwarder, AragonApp {
 
     modifier minBalanceCheck(uint256 _minBalance) {
         //_minBalance to be at least the equivalent of 10k locked for a year
-        require(_minBalance >= 315360000000, "Not enough min balance");
+        require(_minBalance >= uint256(10000).mul(31536000), "Not enough min balance");
         _;
     }
 
@@ -368,7 +368,7 @@ contract Voting is IForwarder, AragonApp {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
-        require(state != VoterState.Yea && state != VoterState.Nay, "Can't change votes");
+        require(state == VoterState.Absent, "Can't change votes");
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 voterStake = token.balanceOfAt(_voter, vote_.snapshotBlock);
         voterStake = voterStake.mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
