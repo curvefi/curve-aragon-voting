@@ -1,0 +1,25 @@
+{
+  "name": "curve-aragon-voting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pengiundev/curve-aragon-voting.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pengiundev/curve-aragon-voting/issues"
+  },
+  "homepage": "https://github.com/pengiundev/curve-aragon-voting#readme",
+  "dependencies": {
+    "@aragon/os": "^4.4.0"
+  }
+}

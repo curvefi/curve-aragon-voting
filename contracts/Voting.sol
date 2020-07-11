@@ -21,6 +21,10 @@ contract Voting is IForwarder, AragonApp {
     bytes32 public constant MODIFY_SUPPORT_ROLE = keccak256("MODIFY_SUPPORT_ROLE");
     bytes32 public constant MODIFY_QUORUM_ROLE = keccak256("MODIFY_QUORUM_ROLE");
 
+    bytes32 public constant SET_TOKEN_ROLE = 0x9b27b5f34c38cd0d691143dc6188f9aa90e75f5e87b428e9315e822224da1dd2; //keccak256("SET_TOKEN_ROLE")
+    bytes32 public constant SET_MIN_BALANCE_ROLE = 0xb1f3f26f63ad27cd630737a426f990492f5c674208299d6fb23bb2b0733d3d66; //keccak256("SET_MIN_BALANCE_ROLE")
+    bytes32 public constant SET_MIN_TIME_ROLE = 0xe7ab0252519cd959720b328191bed7fe61b8e25f77613877be7070646d12daf0; //keccak256("SET_MIN_TIME_ROLE")
+
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
     string private constant ERROR_NO_VOTE = "VOTING_NO_VOTE";
@@ -54,9 +58,14 @@ contract Voting is IForwarder, AragonApp {
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
 
+    uint256 public minBalance;
+    uint256 public minTime;
+
     // We are mimicing an array, we use a mapping instead to make app upgrade more graceful
     mapping (uint256 => Vote) internal votes;
     uint256 public votesLength;
+
+    mapping(address => uint256) public lastCreateVoteTimes;
 
     event StartVote(uint256 indexed voteId, address indexed creator, string metadata);
     event CastVote(uint256 indexed voteId, address indexed voter, bool supports, uint256 stake);
@@ -64,9 +73,29 @@ contract Voting is IForwarder, AragonApp {
     event ChangeSupportRequired(uint64 supportRequiredPct);
     event ChangeMinQuorum(uint64 minAcceptQuorumPct);
 
+    event MinimumBalanceSet(uint256 minBalance);
+    event MinimumTimeSet(uint256 minTime);
+
     modifier voteExists(uint256 _voteId) {
         require(_voteId < votesLength, ERROR_NO_VOTE);
         _;
+    }
+
+    modifier minBalanceCheck(uint256 _minBalance) {
+        //_minBalance to be at least the equivalent of 10k locked for a year
+        require(_minBalance > uint256(10000).mul(31536000), "Not enough min balance");
+        _;
+    }
+
+    modifier minTimeCheck(uint256 _minTime) {
+        require(_minTime > 43200 && _minTime < 1209600, "Min time can't be less than half a day and more than 2 weeks");
+        _;
+    }
+
+    function constructor() public {
+        assert(SET_TOKEN_ROLE == keccak256("SET_TOKEN_ROLE"));
+        assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
+        assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
     }
 
     /**
@@ -76,7 +105,13 @@ contract Voting is IForwarder, AragonApp {
     * @param _minAcceptQuorumPct Percentage of yeas in total possible votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _voteTime Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
     */
-    function initialize(MiniMeToken _token, uint64 _supportRequiredPct, uint64 _minAcceptQuorumPct, uint64 _voteTime) external onlyInit {
+    function initialize(MiniMeToken _token, 
+        uint64 _supportRequiredPct, 
+        uint64 _minAcceptQuorumPct, 
+        uint64 _voteTime,
+        uint256 _minBalance,
+        uint256 _minTime
+    ) external onlyInit minBalanceCheck(_minBalance) minTimeCheck(_minTime) {
         initialized();
 
         require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
@@ -86,6 +121,9 @@ contract Voting is IForwarder, AragonApp {
         supportRequiredPct = _supportRequiredPct;
         minAcceptQuorumPct = _minAcceptQuorumPct;
         voteTime = _voteTime;
+
+        minBalance = _minBalance;
+        minTime = _minTime;
     }
 
     /**
@@ -115,6 +153,20 @@ contract Voting is IForwarder, AragonApp {
         minAcceptQuorumPct = _minAcceptQuorumPct;
 
         emit ChangeMinQuorum(_minAcceptQuorumPct);
+    }
+
+    function setMinBalance(uint256 _minBalance) external auth(SET_MIN_BALANCE_ROLE) minBalanceCheck(_minBalance) {
+        //min balance can't be set to lower than 10k * 1 year
+        minBalance = _minBalance;
+
+        emit MinimumBalanceSet(_minBalance);
+    }
+
+    function setMinTime(uint256 _minTime) external auth(SET_MIN_TIME_ROLE) minTimeCheck(_minTime) {
+        //min time can't be less than half a day and more than 2 weeks
+        minTime = _minTime;
+
+        emit MinimumTimeSet(_minTime);
     }
 
     /**
@@ -220,6 +272,10 @@ contract Voting is IForwarder, AragonApp {
         return _canVote(_voteId, _voter);
     }
 
+    function canCreateNewVote() public returns(bool) {
+        return token.balanceOf(msg.sender) > minBalance &&  block.timestamp.sub(minTime) > lastCreateVoteTimes[msg.sender];
+    }
+
     /**
     * @dev Return all information for a vote by its ID
     * @param _voteId Vote identifier
@@ -281,6 +337,7 @@ contract Voting is IForwarder, AragonApp {
     * @return voteId id for newly created vote
     */
     function _newVote(bytes _executionScript, string _metadata, bool _castVote, bool _executesIfDecided) internal returns (uint256 voteId) {
+        require(canCreateNewVote());
         uint64 snapshotBlock = getBlockNumber64() - 1; // avoid double voting in this very block
         uint256 votingPower = token.totalSupplyAt(snapshotBlock);
         require(votingPower > 0, ERROR_NO_VOTING_POWER);
@@ -297,6 +354,8 @@ contract Voting is IForwarder, AragonApp {
 
         emit StartVote(voteId, msg.sender, _metadata);
 
+        lastCreateVoteTimes[msg.sender] = getTimestamp64();
+
         if (_castVote && _canVote(voteId, msg.sender)) {
             _vote(voteId, true, msg.sender, _executesIfDecided);
         }
@@ -308,16 +367,12 @@ contract Voting is IForwarder, AragonApp {
     function _vote(uint256 _voteId, bool _supports, address _voter, bool _executesIfDecided) internal {
         Vote storage vote_ = votes[_voteId];
 
+        VoterState state = vote_.voters[_voter];
+        require(state != VoterState.Yea && state != VoterState.Nay, "Can't change votes");
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 voterStake = token.balanceOfAt(_voter, vote_.snapshotBlock);
-        VoterState state = vote_.voters[_voter];
+        voterStake = voterStake.mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
 
-        // If voter had previously voted, decrease count
-        if (state == VoterState.Yea) {
-            vote_.yea = vote_.yea.sub(voterStake);
-        } else if (state == VoterState.Nay) {
-            vote_.nay = vote_.nay.sub(voterStake);
-        }
 
         if (_supports) {
             vote_.yea = vote_.yea.add(voterStake);
