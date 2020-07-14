@@ -111,7 +111,7 @@ contract Voting is IForwarder, AragonApp {
         uint256 _minBalanceLowerLimit,
         uint256 _minTimeLowerLimit,
         uint256 _minTimeUpperLimit
-    ) external onlyInit minBalanceCheck(_minBalance) minTimeCheck(_minTime) {
+    ) external onlyInit {
         initialized();
 
         require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
