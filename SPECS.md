@@ -12,7 +12,7 @@ at least `minTime` has passed between user's last vote and time now when they wa
 * Min time
     Should allow a token holder to create a new vote only if there is at least `minTime` passed between their last vote and time now when they want to create a new vote
 
-To prevent DAO to set unrealistic limits for `minBalance` and `minTime`, `minBalance` is required to be the equivalent of at least `10000` tokens locked for `one year` (1e18 precision)
+To prevent DAO to set unrealistic limits for `minBalance` and `minTime`, `minBalance` is required to be the equivalent of at least `10000` tokens locked for `one year` (1e18 precision) (which equals to `2500000000000000000000`)
 and `minTime` is required to be between half a day and 2 weeks
 
 Changing votes is not allowed.

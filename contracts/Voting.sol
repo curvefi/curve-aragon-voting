@@ -57,7 +57,7 @@ contract Voting is IForwarder, AragonApp {
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
 
-    uint256 public minBalanceLowerLimit = 315360000000000000000000000000;
+    uint256 public minBalanceLowerLimit = 2500000000000000000000;
     uint256 public minTimeLowerLimit = 43200;
     uint256 public minTimeUpperLimit = 1209600;
 
