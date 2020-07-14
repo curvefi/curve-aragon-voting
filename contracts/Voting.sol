@@ -57,6 +57,10 @@ contract Voting is IForwarder, AragonApp {
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
 
+    uint256 public minBalanceLowerLimit = 315360000000000000000000000000;
+    uint256 public minTimeLowerLimit = 43200;
+    uint256 public minTimeUpperLimit = 1209600;
+
     uint256 public minBalance;
     uint256 public minTime;
 
@@ -82,12 +86,12 @@ contract Voting is IForwarder, AragonApp {
 
     modifier minBalanceCheck(uint256 _minBalance) {
         //_minBalance to be at least the equivalent of 10k locked for a year (1e18 precision)
-        require(_minBalance >= 315360000000000000000000000000, "Not enough min balance");
+        require(_minBalance >= minBalanceLowerLimit, "Not enough min balance");
         _;
     }
 
     modifier minTimeCheck(uint256 _minTime) {
-        require(_minTime >= 43200 && _minTime <= 1209600, "Min time can't be less than half a day and more than 2 weeks");
+        require(_minTime >= minTimeLowerLimit && _minTime <= minTimeUpperLimit, "Min time can't be less than half a day and more than 2 weeks");
         _;
     }
 
@@ -103,7 +107,10 @@ contract Voting is IForwarder, AragonApp {
         uint64 _minAcceptQuorumPct, 
         uint64 _voteTime,
         uint256 _minBalance,
-        uint256 _minTime
+        uint256 _minTime,
+        uint256 _minBalanceLowerLimit,
+        uint256 _minTimeLowerLimit,
+        uint256 _minTimeUpperLimit
     ) external onlyInit minBalanceCheck(_minBalance) minTimeCheck(_minTime) {
         initialized();
 
@@ -117,6 +124,10 @@ contract Voting is IForwarder, AragonApp {
 
         minBalance = _minBalance;
         minTime = _minTime;
+
+        minBalanceLowerLimit = _minBalanceLowerLimit;
+        minTimeLowerLimit = _minTimeLowerLimit;
+        minTimeUpperLimit = _minTimeUpperLimit;
     }
 
     /**
