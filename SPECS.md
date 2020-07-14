@@ -19,3 +19,5 @@ Changing votes is not allowed.
 
 To incentivize people to vote early and not wait and see what's the outcome of the vote and vote near the end of vote,
 the voting power they had for the snapshot of for that vote is getting smaller proportional to the time left for that vote(with a cutoff period of `voteTime` / 2 between creation of vote and when decrease starts to happen)
+
+Voting app will have `CREATE_VOTES_ROLE` permissions set to anyone(`0xffffffffffffffffffffffffffffffffffffffff`) because the balance check will be done inside the Voting app and not through a forwarder
