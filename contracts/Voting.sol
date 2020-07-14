@@ -375,7 +375,7 @@ contract Voting is IForwarder, AragonApp {
         require(state == VoterState.Absent, "Can't change votes");
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
-        uint256 voterStake = uint256(2).mul(voterStake).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
+        uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
         if(voterStake > balance) {
             voterStake = balance;
         }
