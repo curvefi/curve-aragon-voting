@@ -17,12 +17,12 @@ contract Voting is IForwarder, AragonApp {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
-    bytes32 public constant CREATE_VOTES_ROLE = keccak256("CREATE_VOTES_ROLE");
-    bytes32 public constant MODIFY_SUPPORT_ROLE = keccak256("MODIFY_SUPPORT_ROLE");
-    bytes32 public constant MODIFY_QUORUM_ROLE = keccak256("MODIFY_QUORUM_ROLE");
+    bytes32 public constant CREATE_VOTES_ROLE = 0xe7dcd7275292e064d090fbc5f3bd7995be23b502c1fed5cd94cfddbbdcd32bbc; //keccak256("CREATE_VOTES_ROLE");
+    bytes32 public constant MODIFY_SUPPORT_ROLE = 0xda3972983e62bdf826c4b807c4c9c2b8a941e1f83dfa76d53d6aeac11e1be650; //keccak256("MODIFY_SUPPORT_ROLE");
+    bytes32 public constant MODIFY_QUORUM_ROLE = 0xad15e7261800b4bb73f1b69d3864565ffb1fd00cb93cf14fe48da8f1f2149f39; //keccak256("MODIFY_QUORUM_ROLE");
 
-    bytes32 public constant SET_MIN_BALANCE_ROLE = keccak256("SET_MIN_BALANCE_ROLE"); //keccak256("SET_MIN_BALANCE_ROLE")
-    bytes32 public constant SET_MIN_TIME_ROLE = keccak256("SET_MIN_TIME_ROLE"); //keccak256("SET_MIN_TIME_ROLE")
+    bytes32 public constant SET_MIN_BALANCE_ROLE = 0xb1f3f26f63ad27cd630737a426f990492f5c674208299d6fb23bb2b0733d3d66; //keccak256("SET_MIN_BALANCE_ROLE")
+    bytes32 public constant SET_MIN_TIME_ROLE = 0xe7ab0252519cd959720b328191bed7fe61b8e25f77613877be7070646d12daf0; //keccak256("SET_MIN_TIME_ROLE")
 
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
@@ -120,6 +120,12 @@ contract Voting is IForwarder, AragonApp {
         uint256 _minTimeLowerLimit,
         uint256 _minTimeUpperLimit
     ) external onlyInit {
+        assert(CREATE_VOTES_ROLE == keccak256("CREATE_VOTES_ROLE"));
+        assert(MODIFY_SUPPORT_ROLE == keccak256("MODIFY_SUPPORT_ROLE"));
+        assert(MODIFY_QUORUM_ROLE == keccak256("MODIFY_QUORUM_ROLE"));
+        assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
+        assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
+
         initialized();
 
         require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
@@ -133,10 +139,12 @@ contract Voting is IForwarder, AragonApp {
         minAcceptQuorumPct = _minAcceptQuorumPct;
         voteTime = _voteTime;
 
-        minBalance = _minBalance;
+        uint256 decimals = token.decimals();
+
+        minBalance = _minBalance.mul(decimals);
         minTime = _minTime;
 
-        minBalanceLowerLimit = _minBalanceLowerLimit;
+        minBalanceLowerLimit = _minBalanceLowerLimit.mul(decimals);
         minTimeLowerLimit = _minTimeLowerLimit;
         minTimeUpperLimit = _minTimeUpperLimit;
     }
