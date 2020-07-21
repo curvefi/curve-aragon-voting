@@ -73,7 +73,7 @@ contract Voting is IForwarder, AragonApp {
 
     mapping(address => uint256) public lastCreateVoteTimes;
 
-    event StartVote(uint256 indexed voteId, address indexed creator, string metadata);
+    event StartVote(uint256 indexed voteId, address indexed creator, string metadata, uint256 minBalance, uint256 minTime);
     event CastVote(uint256 indexed voteId, address indexed voter, bool supports, uint256 stake);
     event ExecuteVote(uint256 indexed voteId);
     event ChangeSupportRequired(uint64 supportRequiredPct);
@@ -385,7 +385,7 @@ contract Voting is IForwarder, AragonApp {
         vote_.votingPower = votingPower;
         vote_.executionScript = _executionScript;
 
-        emit StartVote(voteId, msg.sender, _metadata);
+        emit StartVote(voteId, msg.sender, _metadata, minBalance, minTime);
 
         lastCreateVoteTimes[msg.sender] = getTimestamp64();
 
