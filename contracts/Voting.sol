@@ -125,6 +125,9 @@ contract Voting is IForwarder, AragonApp {
         require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
         require(_supportRequiredPct < PCT_BASE, ERROR_INIT_SUPPORT_TOO_BIG);
 
+        require(_minBalance >= _minBalanceLowerLimit);
+        require(_minTime >= _minTimeLowerLimit && _minTime <= _minTimeUpperLimit);
+
         token = _token;
         supportRequiredPct = _supportRequiredPct;
         minAcceptQuorumPct = _minAcceptQuorumPct;
