@@ -57,9 +57,12 @@ contract Voting is IForwarder, AragonApp {
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
 
-    uint256 public minBalanceLowerLimit = 2500000000000000000000;
-    uint256 public minTimeLowerLimit = 43200;
-    uint256 public minTimeUpperLimit = 1209600;
+    //2500000000000000000000
+    uint256 public minBalanceLowerLimit;
+    //43200
+    uint256 public minTimeLowerLimit;
+    //1209600
+    uint256 public minTimeUpperLimit;
 
     uint256 public minBalance;
     uint256 public minTime;
@@ -91,7 +94,7 @@ contract Voting is IForwarder, AragonApp {
     }
 
     modifier minTimeCheck(uint256 _minTime) {
-        require(_minTime >= minTimeLowerLimit && _minTime <= minTimeUpperLimit, "Min time can't be less than half a day and more than 2 weeks");
+        require(_minTime >= minTimeLowerLimit && _minTime <= minTimeUpperLimit, "Min time should be within initialization hardcoded limits");
         _;
     }
 
@@ -101,6 +104,11 @@ contract Voting is IForwarder, AragonApp {
     * @param _supportRequiredPct Percentage of yeas in casted votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _minAcceptQuorumPct Percentage of yeas in total possible votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _voteTime Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
+    * @param _minBalance Minumum balance that a token holder should have to create a new vote
+    * @param _minTime Minimum time between a user's previous vote and creating a new vote
+    * @param _minBalanceLowerLimit Hardcoded lower limit for _minBalance on initialization
+    * @param _minTimeLowerLimit Hardcoded lower limit for _minTime on initialization
+    * @param _minTimeUpperLimit Hardcoded upper limit for _minTime on initialization
     */
     function initialize(MiniMeToken _token, 
         uint64 _supportRequiredPct, 
@@ -159,6 +167,11 @@ contract Voting is IForwarder, AragonApp {
         emit ChangeMinQuorum(_minAcceptQuorumPct);
     }
 
+    /**
+    * @notice Change minimum balance needed to create a vote to `_minBalance`
+    * @param _minBalance New minimum balance
+    */
+
     function setMinBalance(uint256 _minBalance) external auth(SET_MIN_BALANCE_ROLE) minBalanceCheck(_minBalance) {
         //min balance can't be set to lower than 10k * 1 year
         minBalance = _minBalance;
@@ -166,8 +179,13 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumBalanceSet(_minBalance);
     }
 
+    /**
+    * @notice Change minimum time needed to pass between user's previous vote and a user creating a new vote
+    * @param _minTime New minumum time
+    */
+
     function setMinTime(uint256 _minTime) external auth(SET_MIN_TIME_ROLE) minTimeCheck(_minTime) {
-        //min time can't be less than half a day and more than 2 weeks
+        //min time should be within initialized hardcoded limits
         minTime = _minTime;
 
         emit MinimumTimeSet(_minTime);
@@ -251,7 +269,7 @@ contract Voting is IForwarder, AragonApp {
     */
     function canForward(address _sender, bytes) public view returns (bool) {
         // Note that `canPerform()` implicitly does an initialization check itself
-        return canPerform(_sender, CREATE_VOTES_ROLE, arr());
+        return canPerform(_sender, CREATE_VOTES_ROLE, arr()) && canCreateNewVote();
     }
 
     // Getter fns
@@ -276,7 +294,7 @@ contract Voting is IForwarder, AragonApp {
         return _canVote(_voteId, _voter);
     }
 
-    function canCreateNewVote() public returns(bool) {
+    function canCreateNewVote() public view returns(bool) {
         return token.balanceOf(msg.sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[msg.sender];
     }
 
