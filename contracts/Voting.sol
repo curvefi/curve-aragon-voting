@@ -139,12 +139,12 @@ contract Voting is IForwarder, AragonApp {
         minAcceptQuorumPct = _minAcceptQuorumPct;
         voteTime = _voteTime;
 
-        uint256 decimals = token.decimals();
+        uint256 decimalsMul = uint256(10) ** token.decimals();
 
-        minBalance = _minBalance.mul(decimals);
+        minBalance = _minBalance.mul(decimalsMul);
         minTime = _minTime;
 
-        minBalanceLowerLimit = _minBalanceLowerLimit.mul(decimals);
+        minBalanceLowerLimit = _minBalanceLowerLimit.mul(decimalsMul);
         minTimeLowerLimit = _minTimeLowerLimit;
         minTimeUpperLimit = _minTimeUpperLimit;
     }
@@ -280,7 +280,7 @@ contract Voting is IForwarder, AragonApp {
     */
     function canForward(address _sender, bytes) public view returns (bool) {
         // Note that `canPerform()` implicitly does an initialization check itself
-        return canPerform(_sender, CREATE_VOTES_ROLE, arr()) && canCreateNewVote();
+        return canPerform(_sender, CREATE_VOTES_ROLE, arr()) && canCreateNewVote(_sender);
     }
 
     // Getter fns
@@ -305,8 +305,8 @@ contract Voting is IForwarder, AragonApp {
         return _canVote(_voteId, _voter);
     }
 
-    function canCreateNewVote() public view returns(bool) {
-        return token.balanceOf(msg.sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[msg.sender];
+    function canCreateNewVote(address _sender) public view returns(bool) {
+        return token.balanceOf(_sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[_sender];
     }
 
     /**
@@ -370,7 +370,7 @@ contract Voting is IForwarder, AragonApp {
     * @return voteId id for newly created vote
     */
     function _newVote(bytes _executionScript, string _metadata, bool _castVote, bool _executesIfDecided) internal returns (uint256 voteId) {
-        require(canCreateNewVote());
+        require(canCreateNewVote(msg.sender));
         uint64 snapshotBlock = getBlockNumber64() - 1; // avoid double voting in this very block
         uint256 votingPower = token.totalSupplyAt(snapshotBlock);
         require(votingPower > 0, ERROR_NO_VOTING_POWER);
