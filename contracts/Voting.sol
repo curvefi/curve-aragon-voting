@@ -147,6 +147,9 @@ contract Voting is IForwarder, AragonApp {
         minBalanceLowerLimit = _minBalanceLowerLimit.mul(decimalsMul);
         minTimeLowerLimit = _minTimeLowerLimit;
         minTimeUpperLimit = _minTimeUpperLimit;
+
+        emit MinimumBalanceSet(minBalance);
+        emit MinimumTimeSet(minTime);
     }
 
     /**
