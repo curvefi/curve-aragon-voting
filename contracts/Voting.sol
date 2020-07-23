@@ -26,17 +26,6 @@ contract Voting is IForwarder, AragonApp {
 
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
-    string private constant ERROR_NO_VOTE = "VOTING_NO_VOTE";
-    string private constant ERROR_INIT_PCTS = "VOTING_INIT_PCTS";
-    string private constant ERROR_CHANGE_SUPPORT_PCTS = "VOTING_CHANGE_SUPPORT_PCTS";
-    string private constant ERROR_CHANGE_QUORUM_PCTS = "VOTING_CHANGE_QUORUM_PCTS";
-    string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
-    string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
-    string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
-    string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
-    string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
-    string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
-
     enum VoterState { Absent, Yea, Nay }
 
     struct Vote {
@@ -83,18 +72,18 @@ contract Voting is IForwarder, AragonApp {
     event MinimumTimeSet(uint256 minTime);
 
     modifier voteExists(uint256 _voteId) {
-        require(_voteId < votesLength, ERROR_NO_VOTE);
+        require(_voteId < votesLength);
         _;
     }
 
     modifier minBalanceCheck(uint256 _minBalance) {
         //_minBalance to be at least the equivalent of 10k locked for a year (1e18 precision)
-        require(_minBalance >= minBalanceLowerLimit, "Not enough min balance");
+        require(_minBalance >= minBalanceLowerLimit, "!");
         _;
     }
 
     modifier minTimeCheck(uint256 _minTime) {
-        require(_minTime >= minTimeLowerLimit && _minTime <= minTimeUpperLimit, "Min time should be within initialization hardcoded limits");
+        require(_minTime >= minTimeLowerLimit && _minTime <= minTimeUpperLimit, "!");
         _;
     }
 
@@ -120,16 +109,16 @@ contract Voting is IForwarder, AragonApp {
         uint256 _minTimeLowerLimit,
         uint256 _minTimeUpperLimit
     ) external onlyInit {
-        assert(CREATE_VOTES_ROLE == keccak256("CREATE_VOTES_ROLE"));
-        assert(MODIFY_SUPPORT_ROLE == keccak256("MODIFY_SUPPORT_ROLE"));
-        assert(MODIFY_QUORUM_ROLE == keccak256("MODIFY_QUORUM_ROLE"));
-        assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
-        assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
+        // assert(CREATE_VOTES_ROLE == keccak256("CREATE_VOTES_ROLE"));
+        // assert(MODIFY_SUPPORT_ROLE == keccak256("MODIFY_SUPPORT_ROLE"));
+        // assert(MODIFY_QUORUM_ROLE == keccak256("MODIFY_QUORUM_ROLE"));
+        // assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
+        // assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
 
         initialized();
 
-        require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
-        require(_supportRequiredPct < PCT_BASE, ERROR_INIT_SUPPORT_TOO_BIG);
+        require(_minAcceptQuorumPct <= _supportRequiredPct);
+        require(_supportRequiredPct < PCT_BASE);
 
         require(_minBalance >= _minBalanceLowerLimit);
         require(_minTime >= _minTimeLowerLimit && _minTime <= _minTimeUpperLimit);
@@ -160,8 +149,8 @@ contract Voting is IForwarder, AragonApp {
         external
         authP(MODIFY_SUPPORT_ROLE, arr(uint256(_supportRequiredPct), uint256(supportRequiredPct)))
     {
-        require(minAcceptQuorumPct <= _supportRequiredPct, ERROR_CHANGE_SUPPORT_PCTS);
-        require(_supportRequiredPct < PCT_BASE, ERROR_CHANGE_SUPPORT_TOO_BIG);
+        require(minAcceptQuorumPct <= _supportRequiredPct);
+        require(_supportRequiredPct < PCT_BASE);
         supportRequiredPct = _supportRequiredPct;
 
         emit ChangeSupportRequired(_supportRequiredPct);
@@ -175,7 +164,7 @@ contract Voting is IForwarder, AragonApp {
         external
         authP(MODIFY_QUORUM_ROLE, arr(uint256(_minAcceptQuorumPct), uint256(minAcceptQuorumPct)))
     {
-        require(_minAcceptQuorumPct <= supportRequiredPct, ERROR_CHANGE_QUORUM_PCTS);
+        require(_minAcceptQuorumPct <= supportRequiredPct);
         minAcceptQuorumPct = _minAcceptQuorumPct;
 
         emit ChangeMinQuorum(_minAcceptQuorumPct);
@@ -240,7 +229,7 @@ contract Voting is IForwarder, AragonApp {
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
     function vote(uint256 _voteId, bool _supports, bool _executesIfDecided) external voteExists(_voteId) {
-        require(_canVote(_voteId, msg.sender), ERROR_CAN_NOT_VOTE);
+        require(_canVote(_voteId, msg.sender));
         _vote(_voteId, _supports, msg.sender, _executesIfDecided);
     }
 
@@ -271,7 +260,7 @@ contract Voting is IForwarder, AragonApp {
     * @param _evmScript Start vote with script
     */
     function forward(bytes _evmScript) public {
-        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
+        require(canForward(msg.sender, _evmScript));
         _newVote(_evmScript, "", true, true);
     }
 
@@ -376,7 +365,7 @@ contract Voting is IForwarder, AragonApp {
         require(canCreateNewVote(msg.sender));
         uint64 snapshotBlock = getBlockNumber64() - 1; // avoid double voting in this very block
         uint256 votingPower = token.totalSupplyAt(snapshotBlock);
-        require(votingPower > 0, ERROR_NO_VOTING_POWER);
+        require(votingPower > 0);
 
         voteId = votesLength++;
 
@@ -404,7 +393,7 @@ contract Voting is IForwarder, AragonApp {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
-        require(state == VoterState.Absent, "Can't change votes");
+        require(state == VoterState.Absent, "!change");
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
         uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
@@ -432,7 +421,7 @@ contract Voting is IForwarder, AragonApp {
     * @dev Internal function to execute a vote. It assumes the queried vote exists.
     */
     function _executeVote(uint256 _voteId) internal {
-        require(_canExecute(_voteId), ERROR_CAN_NOT_EXECUTE);
+        require(_canExecute(_voteId));
         _unsafeExecuteVote(_voteId);
     }
 
