@@ -320,6 +320,7 @@ contract Voting is IForwarder, AragonApp {
     }
 
     function canCreateNewVote(address _sender) public view returns(bool) {
+        require(enableVoteCreation == true, "Creating votes is not yet allowed");
         return token.balanceOf(_sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[_sender];
     }
 
