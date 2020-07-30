@@ -24,7 +24,7 @@ contract Voting is IForwarder, AragonApp {
     bytes32 public constant SET_MIN_BALANCE_ROLE = 0xb1f3f26f63ad27cd630737a426f990492f5c674208299d6fb23bb2b0733d3d66; //keccak256("SET_MIN_BALANCE_ROLE")
     bytes32 public constant SET_MIN_TIME_ROLE = 0xe7ab0252519cd959720b328191bed7fe61b8e25f77613877be7070646d12daf0; //keccak256("SET_MIN_TIME_ROLE")
 
-    bytes32 public constant LOCK_VOTING_ROLE = 0xd1e27463bfa33160ff8829a5641b61565a114fc5bd2625f4dceb72d340f8c7a1;
+    bytes32 public constant ENABLE_VOTE_CREATION = 0xecb50dc3e77ba8a59697a3cc090a29b4cbd3c1f2b6b3aea524e0d166969592b9; //keccak256("ENABLE_VOTE_CREATION")
 
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
@@ -69,9 +69,7 @@ contract Voting is IForwarder, AragonApp {
     uint256 public minBalance;
     uint256 public minTime;
 
-    uint256 public INITIAL_LOCK_VOTING;
-    bool public lockVoting;
-    bool public wasLocked = false;
+    bool public enableVoteCreation;
 
     // We are mimicing an array, we use a mapping instead to make app upgrade more graceful
     mapping (uint256 => Vote) internal votes;
@@ -124,16 +122,14 @@ contract Voting is IForwarder, AragonApp {
         uint256 _minTime,
         uint256 _minBalanceLowerLimit,
         uint256 _minTimeLowerLimit,
-        uint256 _minTimeUpperLimit,
-        bool _INITIAL_LOCK_VOTING,
-        bool _lockVoting
+        uint256 _minTimeUpperLimit
     ) external onlyInit {
         assert(CREATE_VOTES_ROLE == keccak256("CREATE_VOTES_ROLE"));
         assert(MODIFY_SUPPORT_ROLE == keccak256("MODIFY_SUPPORT_ROLE"));
         assert(MODIFY_QUORUM_ROLE == keccak256("MODIFY_QUORUM_ROLE"));
         assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
         assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
-        assert(LOCK_VOTING_ROLE == keccak256("LOCK_VOTING_ROLE"));
+        assert(ENABLE_VOTE_CREATION == keccak256("ENABLE_VOTE_CREATION"));
 
         initialized();
 
@@ -160,11 +156,7 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumBalanceSet(minBalance);
         emit MinimumTimeSet(minTime);
 
-        INITIAL_LOCK_VOTING = _INITIAL_LOCK_VOTING;
-        lockVoting = _lockVoting;
-        if(_lockVoting) {
-            wasLocked = true;
-        }
+        enableVoteCreation = false;
     }
 
     /**
@@ -220,9 +212,8 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumTimeSet(_minTime);
     }
 
-    function setLockVoting(uint256 untilTimestamp) external auth(LOCK_VOTING_ROLE) {
-        require(!wasLocked, "Voting can be locked only once");
-        lockVoting = true;
+    function setVoteCreation() external auth(ENABLE_VOTE_CREATION) {
+        enableVoteCreation = true;
     }
 
     /**
@@ -329,7 +320,6 @@ contract Voting is IForwarder, AragonApp {
     }
 
     function canCreateNewVote(address _sender) public view returns(bool) {
-        require(block.timestamp > INITIAL_LOCK_VOTING, "Can not create votes until initial vote creation time is passed");
         return token.balanceOf(_sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[_sender];
     }
 
@@ -477,6 +467,8 @@ contract Voting is IForwarder, AragonApp {
     */
     function _canExecute(uint256 _voteId) internal view returns (bool) {
         Vote storage vote_ = votes[_voteId];
+
+        require(!_isVoteOpen(vote_), "Voting should be finished in order to execute the vote");
 
         if (vote_.executed) {
             return false;
