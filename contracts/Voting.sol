@@ -26,6 +26,8 @@ contract Voting is IForwarder, AragonApp {
 
     bytes32 public constant ENABLE_VOTE_CREATION = 0xecb50dc3e77ba8a59697a3cc090a29b4cbd3c1f2b6b3aea524e0d166969592b9; //keccak256("ENABLE_VOTE_CREATION")
 
+    bytes32 public constant DISABLE_VOTE_CREATION = 0x40b01f8b31b51596de2eeab8c325ff77cc3695c1c1875d66ff31176e7148d2a1; //keccack256("DISABLE_VOTE_CREATION")
+
     uint64 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
     string private constant ERROR_NO_VOTE = "VOTING_NO_VOTE";
@@ -129,6 +131,7 @@ contract Voting is IForwarder, AragonApp {
         assert(MODIFY_QUORUM_ROLE == keccak256("MODIFY_QUORUM_ROLE"));
         assert(SET_MIN_BALANCE_ROLE == keccak256("SET_MIN_BALANCE_ROLE"));
         assert(SET_MIN_TIME_ROLE == keccak256("SET_MIN_TIME_ROLE"));
+        assert(DISABLE_VOTE_CREATION == keccak256("DISABLE_VOTE_CREATION"));
         assert(ENABLE_VOTE_CREATION == keccak256("ENABLE_VOTE_CREATION"));
 
         initialized();
@@ -212,7 +215,12 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumTimeSet(_minTime);
     }
 
-    function setVoteCreation() external auth(ENABLE_VOTE_CREATION) {
+    //later role will be set to 0x0 - noone
+    function disableVoteCreationOnce() external auth(DISABLE_VOTE_CREATION) {
+        enableVoteCreation = false;
+    }
+
+    function enableVoteCreationOnce() external auth(ENABLE_VOTE_CREATION) {
         enableVoteCreation = true;
     }
 
