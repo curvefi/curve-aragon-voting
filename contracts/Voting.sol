@@ -159,7 +159,7 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumBalanceSet(minBalance);
         emit MinimumTimeSet(minTime);
 
-        enableVoteCreation = false;
+        enableVoteCreation = true;
     }
 
     /**
