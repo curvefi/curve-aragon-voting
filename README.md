@@ -64,6 +64,7 @@ i.e 510000000000000000 = 51%
 
 `$VOTE_TIME` = Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
 
+`MIN_TIME` = The minumum time that has to pass between a user's last creating of vote and him creating new vote
 
 `$MIN_BALANCE` = The minimum balance a user can have to create a new vote - `2500` means `2500e18`
 
