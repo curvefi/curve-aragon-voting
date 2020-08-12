@@ -62,6 +62,11 @@
       "name": "Set the minimum required time between one user creating new votes",
       "id": "SET_MIN_TIME_ROLE",
       "params": []
+    },
+    {
+      "name": "Enable vote creation",
+      "id": "ENABLE_VOTE_CREATION",
+      "params": []
     }
   ],
   "path": "contracts/Voting.sol"
