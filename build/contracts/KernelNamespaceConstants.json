@@ -1,28 +1,28 @@
 {
   "contractName": "KernelNamespaceConstants",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.4.24+commit.e67f0147\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"@aragon/os/contracts/kernel/KernelConstants.sol\":\"KernelNamespaceConstants\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@aragon/os/contracts/kernel/KernelConstants.sol\":{\"keccak256\":\"0x817f66cfc7bfafd19a4e6b1344850c5f7b72e39a1073fe862efebe608a07c0d3\",\"urls\":[\"bzzr://0a16040bc7a9dff4e7e411c850565f11ec0ca65b5e170527a9f47c92ddbb110d\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a72305820038eac8460bfb65f479069e04a9c96049ef0584073e6077b40d7ec0b58d66e750029",
-  "deployedBytecode": "0x6080604052600080fd00a165627a7a72305820038eac8460bfb65f479069e04a9c96049ef0584073e6077b40d7ec0b58d66e750029",
-  "sourceMap": "751:685:26:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;751:685:26;;;;;;;",
-  "deployedSourceMap": "751:685:26:-;;;;;",
+  "metadata": "{\"compiler\":{\"version\":\"0.4.24+commit.e67f0147\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"@aragon/os/contracts/kernel/KernelConstants.sol\":\"KernelNamespaceConstants\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@aragon/os/contracts/kernel/KernelConstants.sol\":{\"keccak256\":\"0x817f66cfc7bfafd19a4e6b1344850c5f7b72e39a1073fe862efebe608a07c0d3\",\"urls\":[\"bzzr://0a16040bc7a9dff4e7e411c850565f11ec0ca65b5e170527a9f47c92ddbb110d\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a72305820b1b66352f9ca218643cd29c270600d7eec84abac8680530eb43626e83314b3c00029",
+  "deployedBytecode": "0x6080604052600080fd00a165627a7a72305820b1b66352f9ca218643cd29c270600d7eec84abac8680530eb43626e83314b3c00029",
+  "sourceMap": "751:685:27:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;751:685:27;;;;;;;",
+  "deployedSourceMap": "751:685:27:-;;;;;",
   "source": "/*\n * SPDX-License-Identifier:    MIT\n */\n\npragma solidity ^0.4.24;\n\n\ncontract KernelAppIds {\n    /* Hardcoded constants to save gas\n    bytes32 internal constant KERNEL_CORE_APP_ID = apmNamehash(\"kernel\");\n    bytes32 internal constant KERNEL_DEFAULT_ACL_APP_ID = apmNamehash(\"acl\");\n    bytes32 internal constant KERNEL_DEFAULT_VAULT_APP_ID = apmNamehash(\"vault\");\n    */\n    bytes32 internal constant KERNEL_CORE_APP_ID = 0x3b4bf6bf3ad5000ecf0f989d5befde585c6860fea3e574a4fab4c49d1c177d9c;\n    bytes32 internal constant KERNEL_DEFAULT_ACL_APP_ID = 0xe3262375f45a6e2026b7e7b18c2b807434f2508fe1a2a3dfb493c7df8f4aad6a;\n    bytes32 internal constant KERNEL_DEFAULT_VAULT_APP_ID = 0x7e852e0fcfce6551c13800f1e7476f982525c2b5277ba14b24339c68416336d1;\n}\n\n\ncontract KernelNamespaceConstants {\n    /* Hardcoded constants to save gas\n    bytes32 internal constant KERNEL_CORE_NAMESPACE = keccak256(\"core\");\n    bytes32 internal constant KERNEL_APP_BASES_NAMESPACE = keccak256(\"base\");\n    bytes32 internal constant KERNEL_APP_ADDR_NAMESPACE = keccak256(\"app\");\n    */\n    bytes32 internal constant KERNEL_CORE_NAMESPACE = 0xc681a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8;\n    bytes32 internal constant KERNEL_APP_BASES_NAMESPACE = 0xf1f3eb40f5bc1ad1344716ced8b8a0431d840b5783aea1fd01786bc26f35ac0f;\n    bytes32 internal constant KERNEL_APP_ADDR_NAMESPACE = 0xd6f028ca0e8edb4a8c9757ca4fdccab25fa1e0317da1188108f7d2dee14902fb;\n}\n",
   "sourcePath": "@aragon/os/contracts/kernel/KernelConstants.sol",
   "ast": {
     "absolutePath": "@aragon/os/contracts/kernel/KernelConstants.sol",
     "exportedSymbols": {
       "KernelAppIds": [
-        4160
+        4645
       ],
       "KernelNamespaceConstants": [
-        4170
+        4655
       ]
     },
-    "id": 4171,
+    "id": 4656,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4150,
+        "id": 4635,
         "literals": [
           "solidity",
           "^",
@@ -30,7 +30,7 @@
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "43:24:26"
+        "src": "43:24:27"
       },
       {
         "baseContracts": [],
@@ -38,20 +38,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 4160,
+        "id": 4645,
         "linearizedBaseContracts": [
-          4160
+          4645
         ],
         "name": "KernelAppIds",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 4153,
+            "id": 4638,
             "name": "KERNEL_CORE_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "378:113:26",
+            "scope": 4645,
+            "src": "378:113:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -59,10 +59,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4151,
+              "id": 4636,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "378:7:26",
+              "src": "378:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -71,14 +71,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307833623462663662663361643530303065636630663938396435626566646535383563363836306665613365353734613466616234633439643163313737643963",
-              "id": 4152,
+              "id": 4637,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "425:66:26",
+              "src": "425:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_26820674581417955770618996886606012287057497523217723680490657072951651171740_by_1",
@@ -90,11 +90,11 @@
           },
           {
             "constant": true,
-            "id": 4156,
+            "id": 4641,
             "name": "KERNEL_DEFAULT_ACL_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "497:120:26",
+            "scope": 4645,
+            "src": "497:120:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -102,10 +102,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4154,
+              "id": 4639,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "497:7:26",
+              "src": "497:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -114,14 +114,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307865333236323337356634356136653230323662376537623138633262383037343334663235303866653161326133646662343933633764663866346161643661",
-              "id": 4155,
+              "id": 4640,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "551:66:26",
+              "src": "551:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_102742401558032346476295342465683194059973100356111151994489339464177083395434_by_1",
@@ -133,11 +133,11 @@
           },
           {
             "constant": true,
-            "id": 4159,
+            "id": 4644,
             "name": "KERNEL_DEFAULT_VAULT_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "623:122:26",
+            "scope": 4645,
+            "src": "623:122:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -145,10 +145,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4157,
+              "id": 4642,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "623:7:26",
+              "src": "623:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -157,14 +157,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307837653835326530666366636536353531633133383030663165373437366639383235323563326235323737626131346232343333396336383431363333366431",
-              "id": 4158,
+              "id": 4643,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "679:66:26",
+              "src": "679:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_57226727487722793098086042470445423054461272992937981295885369831335668168401_by_1",
@@ -175,8 +175,8 @@
             "visibility": "internal"
           }
         ],
-        "scope": 4171,
-        "src": "70:678:26"
+        "scope": 4656,
+        "src": "70:678:27"
       },
       {
         "baseContracts": [],
@@ -184,20 +184,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 4170,
+        "id": 4655,
         "linearizedBaseContracts": [
-          4170
+          4655
         ],
         "name": "KernelNamespaceConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 4163,
+            "id": 4648,
             "name": "KERNEL_CORE_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1064:116:26",
+            "scope": 4655,
+            "src": "1064:116:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -205,10 +205,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4161,
+              "id": 4646,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1064:7:26",
+              "src": "1064:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -217,14 +217,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307863363831613835333036333734613561623237663062626333383532393661353462636433313461313934386236636636316334656131626334346262396638",
-              "id": 4162,
+              "id": 4647,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1114:66:26",
+              "src": "1114:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_89787029022559609585059478019362941095301484731214564604685658211633205066232_by_1",
@@ -236,11 +236,11 @@
           },
           {
             "constant": true,
-            "id": 4166,
+            "id": 4651,
             "name": "KERNEL_APP_BASES_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1186:121:26",
+            "scope": 4655,
+            "src": "1186:121:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -248,10 +248,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4164,
+              "id": 4649,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1186:7:26",
+              "src": "1186:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -260,14 +260,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307866316633656234306635626331616431333434373136636564386238613034333164383430623537383361656131666430313738366263323666333561633066",
-              "id": 4165,
+              "id": 4650,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1241:66:26",
+              "src": "1241:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_109438364007015322736766724051813704643042782151430130119908516857056060615695_by_1",
@@ -279,11 +279,11 @@
           },
           {
             "constant": true,
-            "id": 4169,
+            "id": 4654,
             "name": "KERNEL_APP_ADDR_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1313:120:26",
+            "scope": 4655,
+            "src": "1313:120:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -291,10 +291,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4167,
+              "id": 4652,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1313:7:26",
+              "src": "1313:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -303,14 +303,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307864366630323863613065386564623461386339373537636134666463636162323566613165303331376461313138383130386637643264656531343930326662",
-              "id": 4168,
+              "id": 4653,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1367:66:26",
+              "src": "1367:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_97219274409662057620501307944052205416727314792190185427402972704265227272955_by_1",
@@ -321,27 +321,27 @@
             "visibility": "internal"
           }
         ],
-        "scope": 4171,
-        "src": "751:685:26"
+        "scope": 4656,
+        "src": "751:685:27"
       }
     ],
-    "src": "43:1394:26"
+    "src": "43:1394:27"
   },
   "legacyAST": {
     "absolutePath": "@aragon/os/contracts/kernel/KernelConstants.sol",
     "exportedSymbols": {
       "KernelAppIds": [
-        4160
+        4645
       ],
       "KernelNamespaceConstants": [
-        4170
+        4655
       ]
     },
-    "id": 4171,
+    "id": 4656,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4150,
+        "id": 4635,
         "literals": [
           "solidity",
           "^",
@@ -349,7 +349,7 @@
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "43:24:26"
+        "src": "43:24:27"
       },
       {
         "baseContracts": [],
@@ -357,20 +357,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 4160,
+        "id": 4645,
         "linearizedBaseContracts": [
-          4160
+          4645
         ],
         "name": "KernelAppIds",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 4153,
+            "id": 4638,
             "name": "KERNEL_CORE_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "378:113:26",
+            "scope": 4645,
+            "src": "378:113:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -378,10 +378,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4151,
+              "id": 4636,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "378:7:26",
+              "src": "378:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -390,14 +390,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307833623462663662663361643530303065636630663938396435626566646535383563363836306665613365353734613466616234633439643163313737643963",
-              "id": 4152,
+              "id": 4637,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "425:66:26",
+              "src": "425:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_26820674581417955770618996886606012287057497523217723680490657072951651171740_by_1",
@@ -409,11 +409,11 @@
           },
           {
             "constant": true,
-            "id": 4156,
+            "id": 4641,
             "name": "KERNEL_DEFAULT_ACL_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "497:120:26",
+            "scope": 4645,
+            "src": "497:120:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -421,10 +421,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4154,
+              "id": 4639,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "497:7:26",
+              "src": "497:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -433,14 +433,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307865333236323337356634356136653230323662376537623138633262383037343334663235303866653161326133646662343933633764663866346161643661",
-              "id": 4155,
+              "id": 4640,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "551:66:26",
+              "src": "551:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_102742401558032346476295342465683194059973100356111151994489339464177083395434_by_1",
@@ -452,11 +452,11 @@
           },
           {
             "constant": true,
-            "id": 4159,
+            "id": 4644,
             "name": "KERNEL_DEFAULT_VAULT_APP_ID",
             "nodeType": "VariableDeclaration",
-            "scope": 4160,
-            "src": "623:122:26",
+            "scope": 4645,
+            "src": "623:122:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -464,10 +464,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4157,
+              "id": 4642,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "623:7:26",
+              "src": "623:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -476,14 +476,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307837653835326530666366636536353531633133383030663165373437366639383235323563326235323737626131346232343333396336383431363333366431",
-              "id": 4158,
+              "id": 4643,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "679:66:26",
+              "src": "679:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_57226727487722793098086042470445423054461272992937981295885369831335668168401_by_1",
@@ -494,8 +494,8 @@
             "visibility": "internal"
           }
         ],
-        "scope": 4171,
-        "src": "70:678:26"
+        "scope": 4656,
+        "src": "70:678:27"
       },
       {
         "baseContracts": [],
@@ -503,20 +503,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 4170,
+        "id": 4655,
         "linearizedBaseContracts": [
-          4170
+          4655
         ],
         "name": "KernelNamespaceConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 4163,
+            "id": 4648,
             "name": "KERNEL_CORE_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1064:116:26",
+            "scope": 4655,
+            "src": "1064:116:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -524,10 +524,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4161,
+              "id": 4646,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1064:7:26",
+              "src": "1064:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -536,14 +536,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307863363831613835333036333734613561623237663062626333383532393661353462636433313461313934386236636636316334656131626334346262396638",
-              "id": 4162,
+              "id": 4647,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1114:66:26",
+              "src": "1114:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_89787029022559609585059478019362941095301484731214564604685658211633205066232_by_1",
@@ -555,11 +555,11 @@
           },
           {
             "constant": true,
-            "id": 4166,
+            "id": 4651,
             "name": "KERNEL_APP_BASES_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1186:121:26",
+            "scope": 4655,
+            "src": "1186:121:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -567,10 +567,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4164,
+              "id": 4649,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1186:7:26",
+              "src": "1186:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -579,14 +579,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307866316633656234306635626331616431333434373136636564386238613034333164383430623537383361656131666430313738366263323666333561633066",
-              "id": 4165,
+              "id": 4650,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1241:66:26",
+              "src": "1241:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_109438364007015322736766724051813704643042782151430130119908516857056060615695_by_1",
@@ -598,11 +598,11 @@
           },
           {
             "constant": true,
-            "id": 4169,
+            "id": 4654,
             "name": "KERNEL_APP_ADDR_NAMESPACE",
             "nodeType": "VariableDeclaration",
-            "scope": 4170,
-            "src": "1313:120:26",
+            "scope": 4655,
+            "src": "1313:120:27",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -610,10 +610,10 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 4167,
+              "id": 4652,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
-              "src": "1313:7:26",
+              "src": "1313:7:27",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes32",
                 "typeString": "bytes32"
@@ -622,14 +622,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "307864366630323863613065386564623461386339373537636134666463636162323566613165303331376461313138383130386637643264656531343930326662",
-              "id": 4168,
+              "id": 4653,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "number",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "1367:66:26",
+              "src": "1367:66:27",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_rational_97219274409662057620501307944052205416727314792190185427402972704265227272955_by_1",
@@ -640,19 +640,19 @@
             "visibility": "internal"
           }
         ],
-        "scope": 4171,
-        "src": "751:685:26"
+        "scope": 4656,
+        "src": "751:685:27"
       }
     ],
-    "src": "43:1394:26"
+    "src": "43:1394:27"
   },
   "compiler": {
     "name": "solc",
     "version": "0.4.24+commit.e67f0147.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.1.0",
-  "updatedAt": "2020-07-11T15:52:10.220Z",
+  "schemaVersion": "3.2.5",
+  "updatedAt": "2020-10-02T17:30:12.324Z",
   "devdoc": {
     "methods": {}
   },

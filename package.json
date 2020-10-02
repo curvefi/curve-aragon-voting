@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/pengiundev/curve-aragon-voting#readme",
   "dependencies": {
-    "@aragon/os": "^4.4.0"
+    "@aragon/apps-shared-minime": "^1.0.2",
+    "@aragon/os": "^4.4.0",
+    "@openzeppelin/contracts": "^3.2.0"
   }
 }

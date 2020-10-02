@@ -12,10 +12,33 @@ import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
 import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
 
+import "../biconomy/BasicMetaTransaction.sol";
 
-contract Voting is IForwarder, AragonApp {
+
+interface IFreeFromUpTo {
+    function freeFromUpTo(address from, uint256 value) external returns (uint256 freed);
+    function balanceOf(address account) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+}
+
+contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
+
+    IFreeFromUpTo public constant chi = IFreeFromUpTo(0x0000000000004946c0e9F43F4Dee607b0eF1fA1c);
+
+    modifier discountCHI {
+        uint256 gasStart = gasleft();
+        _;
+        uint256 gasSpent = 21000 + gasStart - gasleft() + 16 *
+                           msg.data.length;
+        if(chi.balanceOf(address(this)) > 0) {
+            chi.freeFromUpTo(address(this), (gasSpent + 14154) / 41947);
+        }
+        else {
+            chi.freeFromUpTo(msgSender(), (gasSpent + 14154) / 41947);
+        }
+    }
 
     bytes32 public constant CREATE_VOTES_ROLE = 0xe7dcd7275292e064d090fbc5f3bd7995be23b502c1fed5cd94cfddbbdcd32bbc; //keccak256("CREATE_VOTES_ROLE");
     bytes32 public constant MODIFY_SUPPORT_ROLE = 0xda3972983e62bdf826c4b807c4c9c2b8a941e1f83dfa76d53d6aeac11e1be650; //keccak256("MODIFY_SUPPORT_ROLE");
@@ -163,6 +186,8 @@ contract Voting is IForwarder, AragonApp {
         emit MinimumTimeSet(minTime);
 
         enableVoteCreation = true;
+
+        require(chi.approve(address(this), uint256(-1)));
     }
 
     /**
@@ -262,8 +287,8 @@ contract Voting is IForwarder, AragonApp {
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
     function vote(uint256 _voteId, bool _supports, bool _executesIfDecided) external voteExists(_voteId) {
-        require(_canVote(_voteId, msg.sender), ERROR_CAN_NOT_VOTE);
-        _vote(_voteId, _supports, msg.sender, _executesIfDecided);
+        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
+        _vote(_voteId, _supports, msgSender(), _executesIfDecided);
     }
 
     /**
@@ -293,7 +318,7 @@ contract Voting is IForwarder, AragonApp {
     * @param _evmScript Start vote with script
     */
     function forward(bytes _evmScript) public {
-        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
+        require(canForward(msgSender(), _evmScript), ERROR_CAN_NOT_FORWARD);
         _newVote(_evmScript, "", true, true);
     }
 
@@ -395,7 +420,7 @@ contract Voting is IForwarder, AragonApp {
     * @return voteId id for newly created vote
     */
     function _newVote(bytes _executionScript, string _metadata, bool _castVote, bool _executesIfDecided) internal returns (uint256 voteId) {
-        require(canCreateNewVote(msg.sender));
+        require(canCreateNewVote(msgSender()));
         uint64 snapshotBlock = getBlockNumber64() - 1; // avoid double voting in this very block
         uint256 votingPower = token.totalSupplyAt(snapshotBlock);
         require(votingPower > 0, ERROR_NO_VOTING_POWER);
@@ -410,12 +435,12 @@ contract Voting is IForwarder, AragonApp {
         vote_.votingPower = votingPower;
         vote_.executionScript = _executionScript;
 
-        emit StartVote(voteId, msg.sender, _metadata, minBalance, minTime, token.totalSupply(), token.balanceOfAt(msg.sender, snapshotBlock));
+        emit StartVote(voteId, msgSender(), _metadata, minBalance, minTime, token.totalSupply(), token.balanceOfAt(msgSender(), snapshotBlock));
 
-        lastCreateVoteTimes[msg.sender] = getTimestamp64();
+        lastCreateVoteTimes[msgSender()] = getTimestamp64();
 
-        if (_castVote && _canVote(voteId, msg.sender)) {
-            _vote(voteId, true, msg.sender, _executesIfDecided);
+        if (_castVote && _canVote(voteId, msgSender())) {
+            _vote(voteId, true, msgSender(), _executesIfDecided);
         }
     }
 

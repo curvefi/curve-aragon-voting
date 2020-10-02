@@ -1,25 +1,25 @@
 {
   "contractName": "EtherTokenConstant",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.4.24+commit.e67f0147\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"@aragon/os/contracts/common/EtherTokenConstant.sol\":\"EtherTokenConstant\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@aragon/os/contracts/common/EtherTokenConstant.sol\":{\"keccak256\":\"0x6b2fa091968161075154a77fa741a3484c891d73cd3cd14ede502ff56dd08dfc\",\"urls\":[\"bzzr://b2c4abc0b256f0127cede810517c8c5d80d191d28d160d2e1a1a2707eb6dc6da\"]}},\"version\":1}",
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a72305820691d39df033e0e2f2fed8befc882045032827731fd04aef098aab5d93049e9590029",
-  "deployedBytecode": "0x6080604052600080fd00a165627a7a72305820691d39df033e0e2f2fed8befc882045032827731fd04aef098aab5d93049e9590029",
-  "sourceMap": "194:79:10:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;194:79:10;;;;;;;",
-  "deployedSourceMap": "194:79:10:-;;;;;",
+  "metadata": "{\"compiler\":{\"version\":\"0.4.24+commit.e67f0147\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"@aragon/os/contracts/common/EtherTokenConstant.sol\":\"EtherTokenConstant\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@aragon/os/contracts/common/EtherTokenConstant.sol\":{\"keccak256\":\"0x6b2fa091968161075154a77fa741a3484c891d73cd3cd14ede502ff56dd08dfc\",\"urls\":[\"bzzr://b2c4abc0b256f0127cede810517c8c5d80d191d28d160d2e1a1a2707eb6dc6da\"]}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a723058206305c602b2d34ea5e404db5d431c4f7ac47ec5dad22660a31cbd48205163b3600029",
+  "deployedBytecode": "0x6080604052600080fd00a165627a7a723058206305c602b2d34ea5e404db5d431c4f7ac47ec5dad22660a31cbd48205163b3600029",
+  "sourceMap": "194:79:11:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;194:79:11;;;;;;;",
+  "deployedSourceMap": "194:79:11:-;;;;;",
   "source": "/*\n * SPDX-License-Identifier:    MIT\n */\n\npragma solidity ^0.4.24;\n\n\n// aragonOS and aragon-apps rely on address(0) to denote native ETH, in\n// contracts where both tokens and ETH are accepted\ncontract EtherTokenConstant {\n    address internal constant ETH = address(0);\n}\n",
   "sourcePath": "@aragon/os/contracts/common/EtherTokenConstant.sol",
   "ast": {
     "absolutePath": "@aragon/os/contracts/common/EtherTokenConstant.sol",
     "exportedSymbols": {
       "EtherTokenConstant": [
-        3121
+        3606
       ]
     },
-    "id": 3122,
+    "id": 3607,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3115,
+        "id": 3600,
         "literals": [
           "solidity",
           "^",
@@ -27,7 +27,7 @@
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "43:24:10"
+        "src": "43:24:11"
       },
       {
         "baseContracts": [],
@@ -35,20 +35,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 3121,
+        "id": 3606,
         "linearizedBaseContracts": [
-          3121
+          3606
         ],
         "name": "EtherTokenConstant",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 3120,
+            "id": 3605,
             "name": "ETH",
             "nodeType": "VariableDeclaration",
-            "scope": 3121,
-            "src": "228:42:10",
+            "scope": 3606,
+            "src": "228:42:11",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -56,10 +56,10 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 3116,
+              "id": 3601,
               "name": "address",
               "nodeType": "ElementaryTypeName",
-              "src": "228:7:10",
+              "src": "228:7:11",
               "typeDescriptions": {
                 "typeIdentifier": "t_address",
                 "typeString": "address"
@@ -71,14 +71,14 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "30",
-                  "id": 3118,
+                  "id": 3603,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",
-                  "src": "268:1:10",
+                  "src": "268:1:11",
                   "subdenomination": null,
                   "typeDescriptions": {
                     "typeIdentifier": "t_rational_0_by_1",
@@ -94,20 +94,20 @@
                     "typeString": "int_const 0"
                   }
                 ],
-                "id": 3117,
+                "id": 3602,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
                 "lValueRequested": false,
                 "nodeType": "ElementaryTypeNameExpression",
-                "src": "260:7:10",
+                "src": "260:7:11",
                 "typeDescriptions": {
                   "typeIdentifier": "t_type$_t_address_$",
                   "typeString": "type(address)"
                 },
                 "typeName": "address"
               },
-              "id": 3119,
+              "id": 3604,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -115,7 +115,7 @@
               "lValueRequested": false,
               "names": [],
               "nodeType": "FunctionCall",
-              "src": "260:10:10",
+              "src": "260:10:11",
               "typeDescriptions": {
                 "typeIdentifier": "t_address",
                 "typeString": "address"
@@ -124,24 +124,24 @@
             "visibility": "internal"
           }
         ],
-        "scope": 3122,
-        "src": "194:79:10"
+        "scope": 3607,
+        "src": "194:79:11"
       }
     ],
-    "src": "43:231:10"
+    "src": "43:231:11"
   },
   "legacyAST": {
     "absolutePath": "@aragon/os/contracts/common/EtherTokenConstant.sol",
     "exportedSymbols": {
       "EtherTokenConstant": [
-        3121
+        3606
       ]
     },
-    "id": 3122,
+    "id": 3607,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 3115,
+        "id": 3600,
         "literals": [
           "solidity",
           "^",
@@ -149,7 +149,7 @@
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "43:24:10"
+        "src": "43:24:11"
       },
       {
         "baseContracts": [],
@@ -157,20 +157,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 3121,
+        "id": 3606,
         "linearizedBaseContracts": [
-          3121
+          3606
         ],
         "name": "EtherTokenConstant",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 3120,
+            "id": 3605,
             "name": "ETH",
             "nodeType": "VariableDeclaration",
-            "scope": 3121,
-            "src": "228:42:10",
+            "scope": 3606,
+            "src": "228:42:11",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -178,10 +178,10 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 3116,
+              "id": 3601,
               "name": "address",
               "nodeType": "ElementaryTypeName",
-              "src": "228:7:10",
+              "src": "228:7:11",
               "typeDescriptions": {
                 "typeIdentifier": "t_address",
                 "typeString": "address"
@@ -193,14 +193,14 @@
                 {
                   "argumentTypes": null,
                   "hexValue": "30",
-                  "id": 3118,
+                  "id": 3603,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
                   "kind": "number",
                   "lValueRequested": false,
                   "nodeType": "Literal",
-                  "src": "268:1:10",
+                  "src": "268:1:11",
                   "subdenomination": null,
                   "typeDescriptions": {
                     "typeIdentifier": "t_rational_0_by_1",
@@ -216,20 +216,20 @@
                     "typeString": "int_const 0"
                   }
                 ],
-                "id": 3117,
+                "id": 3602,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
                 "lValueRequested": false,
                 "nodeType": "ElementaryTypeNameExpression",
-                "src": "260:7:10",
+                "src": "260:7:11",
                 "typeDescriptions": {
                   "typeIdentifier": "t_type$_t_address_$",
                   "typeString": "type(address)"
                 },
                 "typeName": "address"
               },
-              "id": 3119,
+              "id": 3604,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -237,7 +237,7 @@
               "lValueRequested": false,
               "names": [],
               "nodeType": "FunctionCall",
-              "src": "260:10:10",
+              "src": "260:10:11",
               "typeDescriptions": {
                 "typeIdentifier": "t_address",
                 "typeString": "address"
@@ -246,19 +246,19 @@
             "visibility": "internal"
           }
         ],
-        "scope": 3122,
-        "src": "194:79:10"
+        "scope": 3607,
+        "src": "194:79:11"
       }
     ],
-    "src": "43:231:10"
+    "src": "43:231:11"
   },
   "compiler": {
     "name": "solc",
     "version": "0.4.24+commit.e67f0147.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.1.0",
-  "updatedAt": "2020-07-11T15:52:10.210Z",
+  "schemaVersion": "3.2.5",
+  "updatedAt": "2020-10-02T17:30:12.309Z",
   "devdoc": {
     "methods": {}
   },
