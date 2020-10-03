@@ -504,7 +504,9 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     function _canExecute(uint256 _voteId) internal view returns (bool) {
         Vote storage vote_ = votes[_voteId];
 
-        require(!_isVoteOpen(vote_), "Voting should be finished in order to execute the vote");
+        if(_isVoteOpen(vote_)) {
+            return false;
+        }
 
         if (vote_.executed) {
             return false;
