@@ -63,6 +63,7 @@ contract BasicMetaTransaction {
             uint256 index = msg.data.length;
             assembly {
                 // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
+                // In case we change Solidity versions, need to have a look at this!
                 sender := and(mload(add(array, index)), 0xffffffffffffffffffffffffffffffffffffffff)
             }
         } else {
