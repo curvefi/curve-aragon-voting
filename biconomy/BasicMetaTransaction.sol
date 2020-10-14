@@ -10,11 +10,7 @@ contract BasicMetaTransaction {
     mapping(address => uint256) private nonces;
 
     function getChainID() public pure returns (uint256) {
-        uint256 id;
-        assembly {
-            id := 42
-        }
-        return id;
+        return 1;
     }
 
     /**
@@ -52,6 +48,8 @@ contract BasicMetaTransaction {
 
     function verify(address owner, uint256 nonce, uint256 chainID, bytes memory functionSignature,
         bytes32 sigR, bytes32 sigS, uint8 sigV) public view returns (bool) {
+
+        require(owner != address(0), "Invalid owner address");
 
         bytes32 hash = prefixed(keccak256(abi.encodePacked(nonce, this, chainID, functionSignature)));
         address signer = ecrecover(hash, sigV, sigR, sigS);
