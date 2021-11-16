@@ -104,7 +104,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     mapping(address => uint256) public lastCreateVoteTimes;
 
     event StartVote(uint256 indexed voteId, address indexed creator, string metadata, uint256 minBalance, uint256 minTime, uint256 totalSupply, uint256 creatorVotingPower);
-    event CastVote(uint256 indexed voteId, address indexed voter, bool supports, uint256 stake);
+    event CastVote(uint256 indexed voteId, address indexed voter, uint256 pct, uint256 stake);
     event ExecuteVote(uint256 indexed voteId);
     event ChangeSupportRequired(uint64 supportRequiredPct);
     event ChangeMinQuorum(uint64 minAcceptQuorumPct);
@@ -279,7 +279,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     }
 
     /**
-    * @notice Vote `_supports ? 'yes' : 'no'` in vote #`_voteId`
+    * @notice Vote `_supports ? '100%' : '0%'` in favor of vote #`_voteId`
     * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
     *      created via `newVote(),` which requires initialization
     * @param _voteId Id for vote
@@ -288,7 +288,20 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     */
     function vote(uint256 _voteId, bool _supports, bool _executesIfDecided) external voteExists(_voteId) {
         require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        _vote(_voteId, _supports, msgSender(), _executesIfDecided);
+        _vote(_voteId, _supports ? PCT_BASE : 0, msgSender(), _executesIfDecided);
+    }
+
+    /**
+    * @notice Vote `@formatPct(_pct)`% in favor of vote #`_voteId`
+    * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
+    *      created via `newVote(),` which requires initialization
+    * @param _voteId Id for vote
+    * @param _pct Percentage of support, where 0 is no, and 1e18 is yes
+    * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
+    */
+    function votePct(uint256 _voteId, uint256 _pct, bool _executesIfDecided) external voteExists(_voteId) {
+        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
+        _vote(_voteId, _pct, msgSender(), _executesIfDecided);
     }
 
     /**
@@ -440,18 +453,19 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
         lastCreateVoteTimes[msgSender()] = getTimestamp64();
 
         if (_castVote && _canVote(voteId, msgSender())) {
-            _vote(voteId, true, msgSender(), _executesIfDecided);
+            _vote(voteId, PCT_BASE, msgSender(), _executesIfDecided);
         }
     }
 
     /**
     * @dev Internal function to cast a vote. It assumes the queried vote exists.
     */
-    function _vote(uint256 _voteId, bool _supports, address _voter, bool _executesIfDecided) internal {
+    function _vote(uint256 _voteId, uint256 _pct, address _voter, bool _executesIfDecided) internal {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
         require(state == VoterState.Absent, "Can't change votes");
+        require(_pct != PCT_BASE / 2, "VOTING_CANNOT_ABSTAIN");
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
         uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
@@ -459,15 +473,19 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
             voterStake = balance;
         }
 
-        if (_supports) {
-            vote_.yea = vote_.yea.add(voterStake);
-        } else {
-            vote_.nay = vote_.nay.add(voterStake);
+        uint256 yea = voterStake.mul(_pct).div(PCT_BASE);
+        uint256 nay = voterStake.sub(yea);
+
+        if (yea > 0) {
+            vote_.yea = vote_.yea.add(yea);
+        }
+        if (nay > 0) {
+            vote_.nay = vote_.nay.add(nay);
         }
 
-        vote_.voters[_voter] = _supports ? VoterState.Yea : VoterState.Nay;
+        vote_.voters[_voter] = yea > nay ? VoterState.Yea : VoterState.Nay;
 
-        emit CastVote(_voteId, _voter, _supports, voterStake);
+        emit CastVote(_voteId, _voter, _pct, voterStake);
 
         if (_executesIfDecided && _canExecute(_voteId)) {
             // We've already checked if the vote can be executed with `_canExecute()`
