@@ -29,7 +29,7 @@ const config: HardhatUserConfig = {
     ],
   },
   aragon: {
-    appEnsName: "voting.aragonpm.eth",
+    appEnsName: "crv-voting.open.aragonpm.eth",
     appContractName: "Voting",
     appRoles: [
       {
