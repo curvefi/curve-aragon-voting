@@ -68,7 +68,7 @@ export const increase = async (duration: string | BigNumber) => {
     duration = ethers.BigNumber.from(duration);
   }
   // Get rid of typescript errors
-  duration = duration as BigNumber
+  duration = duration as BigNumber;
 
   if (duration.isNegative())
     throw Error(`Cannot increase time by a negative amount (${duration})`);
@@ -84,8 +84,5 @@ export const increase = async (duration: string | BigNumber) => {
 };
 
 export const setBytecode = async (address: string, bytecode: string) => {
-  await hre.network.provider.send("hardhat_setCode", [
-    address,
-    bytecode
-  ]);
-}
+  await hre.network.provider.send("hardhat_setCode", [address, bytecode]);
+};
