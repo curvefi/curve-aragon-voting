@@ -25,6 +25,9 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
+    uint128 private constant MAX_UINT_64 = 2 ** 64 - 1;
+    uint128 private constant MAX_UINT_128 = 2 ** 128 - 1;
+
     IFreeFromUpTo public constant chi = IFreeFromUpTo(0x0000000000004946c0e9F43F4Dee607b0eF1fA1c);
 
     modifier discountCHI {
@@ -60,6 +63,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
+    string private constant ERROR_VOTE_CANNOT_ABSTAIN = "VOTE_CANNOT_ABSTAIN";
     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
@@ -279,29 +283,21 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     }
 
     /**
-    * @notice Vote `_supports ? '100%' : '0%'` in favor of vote #`_voteId`
+    * @notice Vote a percentage value in favor of a vote.
     * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
     *      created via `newVote(),` which requires initialization
-    * @param _voteId Id for vote
-    * @param _supports Whether voter supports the vote
+    * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
+    *          Vote data packing
+    * |    id         |   pct   |   free    |
+    * |    128b       |   64b   |   64b     |
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
-    function vote(uint256 _voteId, bool _supports, bool _executesIfDecided) external voteExists(_voteId) {
-        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        _vote(_voteId, _supports ? PCT_BASE : 0, msgSender(), _executesIfDecided);
-    }
+    function vote(uint256 _voteData, bool _support, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 128, MAX_UINT_128)) {
+        uint256 voteId = _decodeData(_voteData, 128, MAX_UINT_128);
+        uint256 pct = _decodeData(_voteData, 64, MAX_UINT_64);
 
-    /**
-    * @notice Vote `@formatPct(_pct)`% in favor of vote #`_voteId`
-    * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
-    *      created via `newVote(),` which requires initialization
-    * @param _voteId Id for vote
-    * @param _pct Percentage of support, where 0 is no, and 1e18 is yes
-    * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
-    */
-    function votePct(uint256 _voteId, uint256 _pct, bool _executesIfDecided) external voteExists(_voteId) {
-        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        _vote(_voteId, _pct, msgSender(), _executesIfDecided);
+        require(_canVote(voteId, msgSender()), ERROR_CAN_NOT_VOTE);
+        _vote(voteId, pct, msgSender(), _executesIfDecided);
     }
 
     /**
@@ -465,7 +461,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
 
         VoterState state = vote_.voters[_voter];
         require(state == VoterState.Absent, "Can't change votes");
-        require(_pct != PCT_BASE / 2, "VOTING_CANNOT_ABSTAIN");
+        require(_pct != PCT_BASE / 2, ERROR_VOTE_CANNOT_ABSTAIN);
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
         uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
@@ -579,5 +575,15 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
 
         uint256 computedPct = _value.mul(PCT_BASE) / _total;
         return computedPct > _pct;
+    }
+
+    /**
+    * @dev Decodes data by performing bitwise operations.
+    * @param _value Value containing the data
+    * @param _shiftValue Number of bits to shift to the right
+    * @param _maskValue Number of bits to apply as a mask to the value
+     */
+    function _decodeData(uint256 _value, uint256 _shiftValue, uint256 _maskValue) internal pure returns(uint256) {
+        return uint256((_value >> _shiftValue) & _maskValue);
     }
 }
