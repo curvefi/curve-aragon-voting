@@ -186,6 +186,21 @@ describe("Voting", function () {
         votePct: BigNumber
       ): BigNumber => voteId.shl(128).or(votePct.shl(64));
 
+      const isValidVoteProportions = async (voterYeaPct: BigNumber) => {
+        const vote = await voting.getVote(voteId);
+        const voteCreatorStake = await token.balanceOf(voteCreator.address);
+        const voterYeaStake = voterStake
+          .mul(voterYeaPct)
+          .div(await voting.PCT_BASE());
+        const voterNayStake = voterStake.sub(voterYeaStake);
+
+        expect(
+          vote.yea.sub(voteCreatorStake),
+          "Incorrect yea proportion"
+        ).to.be.equal(voterYeaStake);
+        expect(vote.nay, "Incorrect nay proportion").to.be.equal(voterNayStake);
+      };
+
       before("Prepare vote casting", async () => {
         voterVoting = voting.connect(voter);
         voterStake = await token.balanceOf(voter.address);
@@ -201,31 +216,38 @@ describe("Voting", function () {
       });
 
       it("should cast the correct proportions of yea and nay", async () => {
-        const voterPct = votePct(73);
-        const voteData = encodeVoteData(voteId, voterPct);
+        const voterYeaPct = votePct(73);
+        const voteData = encodeVoteData(voteId, voterYeaPct);
 
         await voterVoting.vote(voteData, false, false);
 
-        const vote = await voting.getVote(voteId);
-        const voteCreatorStake = await token.balanceOf(voteCreator.address);
-        const voterYeaStake = voterStake
-          .mul(voterPct)
-          .div(await voting.PCT_BASE());
-        const voterNayStake = voterStake.sub(voterYeaStake);
-
-        expect(
-          vote.yea.sub(voteCreatorStake),
-          "Incorrect yea proportion"
-        ).to.be.equal(voterYeaStake);
-        expect(vote.nay, "Incorrect nay proportion").to.be.equal(voterNayStake);
+        await isValidVoteProportions(voterYeaPct);
       });
 
-      it("should revert when casting a 50% vote", async () => {
-        const voterPct = votePct(50);
-        const voteData = encodeVoteData(voteId, voterPct);
+      it("should cast a 100% vote by setting the support parameter", async () => {
+        const voterYeaPct = votePct(0);
+        const voteData = encodeVoteData(voteId, voterYeaPct);
+
+        await voterVoting.vote(voteData, true, false);
+
+        await isValidVoteProportions(votePct(100));
+      });
+
+      it("should revert when trying to cast a 50% vote", async () => {
+        const voterYeaPct = votePct(50);
+        const voteData = encodeVoteData(voteId, voterYeaPct);
 
         expect(voterVoting.vote(voteData, false, false)).to.be.revertedWith(
           "VOTE_CANNOT_ABSTAIN"
+        );
+      });
+
+      it("should revert when trying to cast a vote that is simultaneously discrete and continuous", async () => {
+        const voterYeaPct = votePct(32);
+        const voteData = encodeVoteData(voteId, voterYeaPct);
+
+        expect(voterVoting.vote(voteData, true, false)).to.be.revertedWith(
+          "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE"
         );
       });
     });

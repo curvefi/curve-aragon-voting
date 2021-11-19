@@ -64,6 +64,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
     string private constant ERROR_VOTE_CANNOT_ABSTAIN = "VOTE_CANNOT_ABSTAIN";
+    string private constant ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE = "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE";
     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
@@ -283,21 +284,26 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     }
 
     /**
-    * @notice Vote a percentage value in favor of a vote.
+    * @notice Vote a percentage value in favor of a vote
     * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
     *      created via `newVote(),` which requires initialization
     * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
     *          Vote data packing
     * |    id         |   pct   |   free    |
     * |    128b       |   64b   |   64b     |
+    * @param _supports Whether voter supports the vote (preserved for backward compatibility purposes)
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
-    function vote(uint256 _voteData, bool _support, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 128, MAX_UINT_128)) {
+    function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 128, MAX_UINT_128)) {
         uint256 voteId = _decodeData(_voteData, 128, MAX_UINT_128);
         uint256 pct = _decodeData(_voteData, 64, MAX_UINT_64);
 
         require(_canVote(voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        _vote(voteId, pct, msgSender(), _executesIfDecided);
+        if (_supports) {
+            require(pct == 0, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
+        }
+
+        _vote(voteId, _supports ? PCT_BASE : pct, msgSender(), _executesIfDecided);
     }
 
     /**
