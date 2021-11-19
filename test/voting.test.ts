@@ -61,18 +61,16 @@ describe("Voting", function () {
     snapshotId = await takeSnapshot();
   };
 
-  before("Load roles", async () => {
-    const Voting = await ethers.getContractFactory("Voting");
-    votingBase = (await Voting.deploy()) as Voting;
-  });
-
   before("Set up DAO", async () => {
     signers = await ethers.getSigners();
     [root, voteCreator, voter] = signers;
+
     [dao, acl] = await newDao(root);
   });
 
   before("Install Voting", async () => {
+    const Voting = await ethers.getContractFactory("Voting");
+    votingBase = (await Voting.deploy()) as Voting;
     const votingAddress = await installNewApp(dao, appId, votingBase.address);
     voting = (await ethers.getContractAt(
       "Voting",
