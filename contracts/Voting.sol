@@ -289,21 +289,24 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     *      created via `newVote(),` which requires initialization
     * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
     *          Vote data packing
-    * |  free  |  pct   |   voteId   |
-    * |  64b   |  64b   |   128b     |
+    * |  free  |  votePct |   voteId   |
+    * |  64b   |    64b   |   128b     |
     * @param _supports Whether voter supports the vote (preserved for backward compatibility purposes)
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
     function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 0, MAX_UINT_128)) {
         uint256 voteId = _decodeData(_voteData, 0, MAX_UINT_128);
-        uint256 pct = _decodeData(_voteData, 128, MAX_UINT_64);
+        uint256 votePct = _decodeData(_voteData, 128, MAX_UINT_64);
 
         require(_canVote(voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        if (_supports) {
-            require(pct == 0, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
-        }
 
-        _vote(voteId, _supports ? PCT_BASE : pct, msgSender(), _executesIfDecided);
+        if (votePct == 0) {
+            _vote(voteId, _supports ? PCT_BASE : 0, msgSender(), _executesIfDecided);
+        }
+        else {
+            require(!_supports, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
+            _vote(voteId, votePct, msgSender(), _executesIfDecided);
+        }
     }
 
     /**
