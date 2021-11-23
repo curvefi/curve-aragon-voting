@@ -141,7 +141,7 @@ describe("Voting", function () {
 
     let voteId: BigNumber;
 
-    beforeEach("Prepare voting", async () => {
+    beforeEach("Create vote", async () => {
       await useSnapshot();
 
       voteCreatorVoting = voting.connect(voteCreator);
@@ -182,7 +182,7 @@ describe("Voting", function () {
       const encodeVoteData = (
         voteId: BigNumber,
         votePct: BigNumber
-      ): BigNumber => voteId.shl(128).or(votePct.shl(64));
+      ): BigNumber => votePct.shl(128).or(voteId);
 
       const isValidVoteProportions = async (voterYeaPct: BigNumber) => {
         const vote = await voting.getVote(voteId);
@@ -200,44 +200,62 @@ describe("Voting", function () {
       };
 
       before("Prepare vote casting", async () => {
+        console.log(" preparing vote casting");
         voterVoting = voting.connect(voter);
         voterStake = await token.balanceOf(voter.address);
       });
 
-      it("should emit a correct CastVote event", async () => {
-        const voterPct = votePct(66);
-        const voteData = encodeVoteData(voteId, voterPct);
+      describe("when casting a continuous vote", () => {
+        it("should emit a correct CastVote event", async () => {
+          const voterPct = votePct(66);
+          const voteData = encodeVoteData(voteId, voterPct);
 
-        expect(await voterVoting.vote(voteData, false, false))
-          .to.emit(voterVoting, "CastVote")
-          .withArgs(voteId, voter.address, voterPct, voterStake);
+          expect(await voterVoting.vote(voteData, false, false))
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, voterPct, voterStake);
+        });
+
+        it("should cast the correct proportions of yea and nay", async () => {
+          const voterYeaPct = votePct(73);
+          const voteData = encodeVoteData(voteId, voterYeaPct);
+
+          await voterVoting.vote(voteData, false, false);
+
+          await isValidVoteProportions(voterYeaPct);
+        });
+
+        it("should revert when trying to cast a 50% vote", async () => {
+          const voterYeaPct = votePct(50);
+          const voteData = encodeVoteData(voteId, voterYeaPct);
+
+          expect(voterVoting.vote(voteData, false, false)).to.be.revertedWith(
+            "VOTE_CANNOT_ABSTAIN"
+          );
+        });
       });
 
-      it("should cast the correct proportions of yea and nay", async () => {
-        const voterYeaPct = votePct(73);
-        const voteData = encodeVoteData(voteId, voterYeaPct);
+      // Backward-compatible check
+      describe("when casting a discrete vote", () => {
+        const yea = pct16(100);
+        const nay = pct16(0);
 
-        await voterVoting.vote(voteData, false, false);
+        it("should emit a correct CastVote event", async () => {
+          expect(await voterVoting.vote(voteId, true, false))
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, yea, voterStake);
+        });
 
-        await isValidVoteProportions(voterYeaPct);
-      });
+        it("should cast a yea vote correctly", async () => {
+          await voterVoting.vote(voteId, true, false);
 
-      it("should cast a 100% vote by setting the support parameter", async () => {
-        const voterYeaPct = votePct(0);
-        const voteData = encodeVoteData(voteId, voterYeaPct);
+          await isValidVoteProportions(yea);
+        });
 
-        await voterVoting.vote(voteData, true, false);
+        it("should cast a nay vote correctly", async () => {
+          await voterVoting.vote(voteId, false, false);
 
-        await isValidVoteProportions(votePct(100));
-      });
-
-      it("should revert when trying to cast a 50% vote", async () => {
-        const voterYeaPct = votePct(50);
-        const voteData = encodeVoteData(voteId, voterYeaPct);
-
-        expect(voterVoting.vote(voteData, false, false)).to.be.revertedWith(
-          "VOTE_CANNOT_ABSTAIN"
-        );
+          await isValidVoteProportions(nay);
+        });
       });
 
       it("should revert when trying to cast a vote that is simultaneously discrete and continuous", async () => {

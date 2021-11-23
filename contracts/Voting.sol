@@ -25,8 +25,8 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
-    uint128 private constant MAX_UINT_64 = 2 ** 64 - 1;
     uint128 private constant MAX_UINT_128 = 2 ** 128 - 1;
+    uint128 private constant MAX_UINT_64 = 2 ** 64 - 1;
 
     IFreeFromUpTo public constant chi = IFreeFromUpTo(0x0000000000004946c0e9F43F4Dee607b0eF1fA1c);
 
@@ -289,14 +289,14 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     *      created via `newVote(),` which requires initialization
     * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
     *          Vote data packing
-    * |    id         |   pct   |   free    |
-    * |    128b       |   64b   |   64b     |
+    * |  free  |  pct   |   voteId   |
+    * |  64b   |  64b   |   128b     |
     * @param _supports Whether voter supports the vote (preserved for backward compatibility purposes)
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
-    function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 128, MAX_UINT_128)) {
-        uint256 voteId = _decodeData(_voteData, 128, MAX_UINT_128);
-        uint256 pct = _decodeData(_voteData, 64, MAX_UINT_64);
+    function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 0, MAX_UINT_128)) {
+        uint256 voteId = _decodeData(_voteData, 0, MAX_UINT_128);
+        uint256 pct = _decodeData(_voteData, 128, MAX_UINT_64);
 
         require(_canVote(voteId, msgSender()), ERROR_CAN_NOT_VOTE);
         if (_supports) {
