@@ -63,13 +63,12 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
-    string private constant ERROR_VOTE_CANNOT_ABSTAIN = "VOTE_CANNOT_ABSTAIN";
     string private constant ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE = "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE";
     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
 
-    enum VoterState { Absent, Yea, Nay }
+    enum VoterState { Absent, Yea, Nay, Even }
 
     struct Vote {
         bool executed;
@@ -109,7 +108,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     mapping(address => uint256) public lastCreateVoteTimes;
 
     event StartVote(uint256 indexed voteId, address indexed creator, string metadata, uint256 minBalance, uint256 minTime, uint256 totalSupply, uint256 creatorVotingPower);
-    event CastVote(uint256 indexed voteId, address indexed voter, uint256 pct, uint256 stake);
+    event CastVote(uint256 indexed voteId, address indexed voter, bool supports, uint256 stake);
     event ExecuteVote(uint256 indexed voteId);
     event ChangeSupportRequired(uint64 supportRequiredPct);
     event ChangeMinQuorum(uint64 minAcceptQuorumPct);
@@ -289,24 +288,29 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     *      created via `newVote(),` which requires initialization
     * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
     *          Vote data packing
-    * |  free  |  votePct |   voteId   |
-    * |  64b   |    64b   |   128b     |
+    * |  yeaPct  |  nayPct  |   voteId  |
+    * |  64b     |  64b     |   128b    |
     * @param _supports Whether voter supports the vote (preserved for backward compatibility purposes)
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
     function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 0, MAX_UINT_128)) {
         uint256 voteId = _decodeData(_voteData, 0, MAX_UINT_128);
-        uint256 votePct = _decodeData(_voteData, 128, MAX_UINT_64);
+        uint256 nayPct = _decodeData(_voteData, 128, MAX_UINT_64);
+        uint256 yeaPct = _decodeData(_voteData, 192, MAX_UINT_64);
 
         require(_canVote(voteId, msgSender()), ERROR_CAN_NOT_VOTE);
 
-        if (votePct == 0) {
-            _vote(voteId, _supports ? PCT_BASE : 0, msgSender(), _executesIfDecided);
+        if (yeaPct == 0 && nayPct == 0) {
+            // Keep backwards compatibility
+            if (_supports) {
+                yeaPct = PCT_BASE;
+            } else {
+                nayPct = PCT_BASE;
+            }
+        } else {
+            require(!_supports && yeaPct.add(nayPct) <= PCT_BASE, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
         }
-        else {
-            require(!_supports, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
-            _vote(voteId, votePct, msgSender(), _executesIfDecided);
-        }
+        _vote(voteId, yeaPct, nayPct, msgSender(), _executesIfDecided);
     }
 
     /**
@@ -458,19 +462,18 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
         lastCreateVoteTimes[msgSender()] = getTimestamp64();
 
         if (_castVote && _canVote(voteId, msgSender())) {
-            _vote(voteId, PCT_BASE, msgSender(), _executesIfDecided);
+            _vote(voteId, PCT_BASE, 0, msgSender(), _executesIfDecided);
         }
     }
 
     /**
     * @dev Internal function to cast a vote. It assumes the queried vote exists.
     */
-    function _vote(uint256 _voteId, uint256 _pct, address _voter, bool _executesIfDecided) internal {
+    function _vote(uint256 _voteId, uint256 _pctYea, uint256 _pctNay, address _voter, bool _executesIfDecided) internal {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
         require(state == VoterState.Absent, "Can't change votes");
-        require(_pct != PCT_BASE / 2, ERROR_VOTE_CANNOT_ABSTAIN);
         // This could re-enter, though we can assume the governance token is not malicious
         uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
         uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
@@ -478,8 +481,8 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
             voterStake = balance;
         }
 
-        uint256 yea = voterStake.mul(_pct).div(PCT_BASE);
-        uint256 nay = voterStake.sub(yea);
+        uint256 yea = voterStake.mul(_pctYea).div(PCT_BASE);
+        uint256 nay = voterStake.mul(_pctNay).div(PCT_BASE);
 
         if (yea > 0) {
             vote_.yea = vote_.yea.add(yea);
@@ -488,9 +491,14 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
             vote_.nay = vote_.nay.add(nay);
         }
 
-        vote_.voters[_voter] = yea > nay ? VoterState.Yea : VoterState.Nay;
+        vote_.voters[_voter] = yea == nay ? VoterState.Even : yea > nay ? VoterState.Yea : VoterState.Nay;
 
-        emit CastVote(_voteId, _voter, _pct, voterStake);
+        if (yea > 0) {
+          emit CastVote(_voteId, _voter, true, yea);
+        }
+        if (nay > 0) {
+          emit CastVote(_voteId, _voter, false, nay);
+        }
 
         if (_executesIfDecided && _canExecute(_voteId)) {
             // We've already checked if the vote can be executed with `_canExecute()`

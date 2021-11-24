@@ -181,21 +181,26 @@ describe("Voting", function () {
 
       const encodeVoteData = (
         voteId: BigNumber,
-        votePct: BigNumber
-      ): BigNumber => votePct.shl(128).or(voteId);
+        yeaPct: BigNumber,
+        nayPct: BigNumber
+      ): BigNumber => BigNumber.from(yeaPct).shl(64).or(nayPct).shl(128).or(voteId);
+  
 
-      const isValidVoteProportions = async (voterYeaPct: BigNumber) => {
+      const isValidVoteProportions = async (voterYeaPct: BigNumber, voterNayPct: BigNumber) => {
         const vote = await voting.getVote(voteId);
+        // Creator voted yes when created the vote
         const voteCreatorStake = await token.balanceOf(voteCreator.address);
         const voterYeaStake = voterStake
           .mul(voterYeaPct)
-          .div(await voting.PCT_BASE());
-        const voterNayStake = voterStake.sub(voterYeaStake);
+          .div(pct16(100));
+        const voterNayStake = voterStake
+          .mul(voterNayPct)
+          .div(pct16(100));
 
         expect(
-          vote.yea.sub(voteCreatorStake),
+          vote.yea,
           "Incorrect yea proportion"
-        ).to.be.equal(voterYeaStake);
+        ).to.be.equal(voterYeaStake.add(voteCreatorStake));
         expect(vote.nay, "Incorrect nay proportion").to.be.equal(voterNayStake);
       };
 
@@ -206,31 +211,49 @@ describe("Voting", function () {
       });
 
       describe("when casting a continuous vote", () => {
-        it("should emit a correct CastVote event", async () => {
-          const voterPct = votePct(66);
-          const voteData = encodeVoteData(voteId, voterPct);
+        it("should emit two correct CastVote events", async () => {
+          const yeaPct = votePct(66);
+          const nayPct = votePct(34);
+          const voteData = encodeVoteData(voteId, yeaPct, nayPct);
 
-          expect(await voterVoting.vote(voteData, false, false))
+          const vote = await voterVoting.vote(voteData, false, false);
+
+          expect(vote)
             .to.emit(voterVoting, "CastVote")
-            .withArgs(voteId, voter.address, voterPct, voterStake);
+            .withArgs(voteId, voter.address, true, voterStake.mul(yeaPct).div(pct16(100)));
+
+          expect(vote)
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, false, voterStake.mul(nayPct).div(pct16(100)));
         });
 
         it("should cast the correct proportions of yea and nay", async () => {
           const voterYeaPct = votePct(73);
-          const voteData = encodeVoteData(voteId, voterYeaPct);
+          const voterNayPct = votePct(100 - 73);
+          const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
 
           await voterVoting.vote(voteData, false, false);
 
-          await isValidVoteProportions(voterYeaPct);
+          await isValidVoteProportions(voterYeaPct, voterNayPct);
         });
 
-        it("should revert when trying to cast a 50% vote", async () => {
-          const voterYeaPct = votePct(50);
-          const voteData = encodeVoteData(voteId, voterYeaPct);
+        it("should cast the correct proportions of yea and nay when not all tokens are used", async () => {
+          const voterYeaPct = votePct(20);
+          const voterNayPct = votePct(50);
+          const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
 
-          expect(voterVoting.vote(voteData, false, false)).to.be.revertedWith(
-            "VOTE_CANNOT_ABSTAIN"
-          );
+          await voterVoting.vote(voteData, false, false);
+
+          await isValidVoteProportions(voterYeaPct, voterNayPct);
+        });
+
+        it("should return even as voter state when trying to cast a 50% vote", async () => {
+          const voterYeaPct = votePct(50);
+          const voterNayPct = votePct(50);
+          const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
+          await voterVoting.vote(voteData, false, false);
+
+          expect(await voterVoting.getVoterState(voteId, voter.address)).to.be.equal(3); // 3 = Even
         });
       });
 
@@ -239,28 +262,35 @@ describe("Voting", function () {
         const yea = pct16(100);
         const nay = pct16(0);
 
-        it("should emit a correct CastVote event", async () => {
+        it("should emit a correct CastVote event when yay", async () => {
           expect(await voterVoting.vote(voteId, true, false))
             .to.emit(voterVoting, "CastVote")
-            .withArgs(voteId, voter.address, yea, voterStake);
+            .withArgs(voteId, voter.address, true, voterStake);
+        });
+
+        it("should emit a correct CastVote event when nay", async () => {
+          expect(await voterVoting.vote(voteId, false, false))
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, false, voterStake);
         });
 
         it("should cast a yea vote correctly", async () => {
           await voterVoting.vote(voteId, true, false);
 
-          await isValidVoteProportions(yea);
+          await isValidVoteProportions(yea, nay);
         });
 
         it("should cast a nay vote correctly", async () => {
           await voterVoting.vote(voteId, false, false);
 
-          await isValidVoteProportions(nay);
+          await isValidVoteProportions(nay, yea);
         });
       });
 
       it("should revert when trying to cast a vote that is simultaneously discrete and continuous", async () => {
         const voterYeaPct = votePct(32);
-        const voteData = encodeVoteData(voteId, voterYeaPct);
+        const voterNayPct = votePct(68);
+        const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
 
         expect(voterVoting.vote(voteData, true, false)).to.be.revertedWith(
           "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE"
