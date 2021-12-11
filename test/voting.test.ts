@@ -255,6 +255,69 @@ describe("Voting", function () {
 
           expect(await voterVoting.getVoterState(voteId, voter.address)).to.be.equal(3); // 3 = Even
         });
+
+        it("should revert when pctYea and pctNay exced 100%", async () => {
+          const voterYeaPct = votePct(32);
+          const voterNayPct = votePct(70);
+          const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
+  
+          expect(voterVoting.vote(voteData, false, false)).to.be.revertedWith(
+            "MALFORMED_CONTINUOUS_VOTE"
+          );
+        });
+      });
+
+      describe("when casting a continuous vote with votePct", () => {
+        it("should emit two correct CastVote events", async () => {
+          const yeaPct = votePct(66);
+          const nayPct = votePct(34);
+          const voteData = encodeVoteData(voteId, yeaPct, nayPct);
+
+          const vote = await voterVoting.votePct(voteId, yeaPct, nayPct, false);
+
+          expect(vote)
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, true, voterStake.mul(yeaPct).div(pct16(100)));
+
+          expect(vote)
+            .to.emit(voterVoting, "CastVote")
+            .withArgs(voteId, voter.address, false, voterStake.mul(nayPct).div(pct16(100)));
+        });
+
+        it("should cast the correct proportions of yea and nay", async () => {
+          const voterYeaPct = votePct(73);
+          const voterNayPct = votePct(100 - 73);
+
+          await voterVoting.votePct(voteId, voterYeaPct, voterNayPct, false);
+
+          await isValidVoteProportions(voterYeaPct, voterNayPct);
+        });
+
+        it("should cast the correct proportions of yea and nay when not all tokens are used", async () => {
+          const voterYeaPct = votePct(20);
+          const voterNayPct = votePct(50);
+
+          await voterVoting.votePct(voteId, voterYeaPct, voterNayPct, false);
+
+          await isValidVoteProportions(voterYeaPct, voterNayPct);
+        });
+
+        it("should return even as voter state when trying to cast a 50% vote", async () => {
+          const voterYeaPct = votePct(50);
+          const voterNayPct = votePct(50);
+          await voterVoting.votePct(voteId, voterYeaPct, voterNayPct, false);
+
+          expect(await voterVoting.getVoterState(voteId, voter.address)).to.be.equal(3); // 3 = Even
+        });
+
+        it("should revert when pctYea and pctNay exced 100%", async () => {
+          const voterYeaPct = votePct(32);
+          const voterNayPct = votePct(70);
+  
+          expect(voterVoting.votePct(voteId, voterYeaPct, voterNayPct, false)).to.be.revertedWith(
+            "MALFORMED_CONTINUOUS_VOTE"
+          );
+        });
       });
 
       // Backward-compatible check
@@ -293,7 +356,7 @@ describe("Voting", function () {
         const voteData = encodeVoteData(voteId, voterYeaPct, voterNayPct);
 
         expect(voterVoting.vote(voteData, true, false)).to.be.revertedWith(
-          "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE"
+          "MALFORMED_CONTINUOUS_VOTE"
         );
       });
     });

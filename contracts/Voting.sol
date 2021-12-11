@@ -63,7 +63,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
-    string private constant ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE = "SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE";
+    string private constant ERROR_MALFORMED_CONTINUOUS_VOTE = "MALFORMED_CONTINUOUS_VOTE";
     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
@@ -308,9 +308,24 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
                 nayPct = PCT_BASE;
             }
         } else {
-            require(!_supports && yeaPct.add(nayPct) <= PCT_BASE, ERROR_SIMULTANEOUS_DISCRETE_CONTINUOUS_VOTE);
+            require(!_supports && yeaPct.add(nayPct) <= PCT_BASE, ERROR_MALFORMED_CONTINUOUS_VOTE);
         }
         _vote(voteId, yeaPct, nayPct, msgSender(), _executesIfDecided);
+    }
+
+    /**
+    * @notice Vote `@formatPct(_yeaPct)`% in favor and `@formatPct(_nayPct)`% against of vote #`_voteId`
+    * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
+    *      created via `newVote(),` which requires initialization
+    * @param _voteId Id for vote
+    * @param _yeaPct Percentage of support, where 0 is no support, and 1e18 is total support
+    * @param _nayPct Percentage of opposition, where 0 is no oposition, and 1e18 is total oposition
+    * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
+    */
+    function votePct(uint128 _voteId, uint64 _yeaPct, uint64 _nayPct, bool _executesIfDecided) external voteExists(_voteId) {
+        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
+        require(_yeaPct.add(_nayPct) <= PCT_BASE, ERROR_MALFORMED_CONTINUOUS_VOTE);
+        _vote(_voteId, _yeaPct, _nayPct, msgSender(), _executesIfDecided);
     }
 
     /**
@@ -469,7 +484,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     /**
     * @dev Internal function to cast a vote. It assumes the queried vote exists.
     */
-    function _vote(uint256 _voteId, uint256 _pctYea, uint256 _pctNay, address _voter, bool _executesIfDecided) internal {
+    function _vote(uint256 _voteId, uint256 _yeaPct, uint256 _nayPct, address _voter, bool _executesIfDecided) internal {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
@@ -481,8 +496,8 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
             voterStake = balance;
         }
 
-        uint256 yea = voterStake.mul(_pctYea).div(PCT_BASE);
-        uint256 nay = voterStake.mul(_pctNay).div(PCT_BASE);
+        uint256 yea = voterStake.mul(_yeaPct).div(PCT_BASE);
+        uint256 nay = voterStake.mul(_nayPct).div(PCT_BASE);
 
         if (yea > 0) {
             vote_.yea = vote_.yea.add(yea);
