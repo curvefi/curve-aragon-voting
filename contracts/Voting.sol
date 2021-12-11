@@ -322,7 +322,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     * @param _nayPct Percentage of opposition, where 0 is no oposition, and 1e18 is total oposition
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
-    function votePct(uint128 _voteId, uint64 _yeaPct, uint64 _nayPct, bool _executesIfDecided) external voteExists(_voteId) {
+    function votePct(uint256 _voteId, uint256 _yeaPct, uint256 _nayPct, bool _executesIfDecided) external voteExists(_voteId) {
         require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
         require(_yeaPct.add(_nayPct) <= PCT_BASE, ERROR_MALFORMED_CONTINUOUS_VOTE);
         _vote(_voteId, _yeaPct, _nayPct, msgSender(), _executesIfDecided);
