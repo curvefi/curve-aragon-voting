@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 10000,
           },
         },
       },
@@ -62,6 +62,11 @@ const config: HardhatUserConfig = {
         id: "ENABLE_VOTE_CREATION",
         params: [],
       },
+      {
+        name: "Disable vote creation",
+        id: "DISABLE_VOTE_CREATION",
+        params: [],
+      },
     ],
   },
   networks: {
@@ -86,6 +91,7 @@ const config: HardhatUserConfig = {
     mainnet: {
       url: node_url("mainnet"),
       accounts: accounts("mainnet"),
+      ensRegistry: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"
     },
     rinkeby: {
       url: node_url("rinkeby"),
