@@ -5,7 +5,6 @@ import { ethers } from "hardhat";
 import {
   increase,
   restoreSnapshot,
-  setBytecode,
   takeSnapshot,
 } from "../helpers/rpc";
 import {
@@ -88,9 +87,6 @@ describe("Voting", function () {
   });
 
   before("Initialize Voting", async () => {
-    const FreeFromUpToMock = await ethers.getContractFactory(
-      "FreeFromUpToMock"
-    );
     const MiniMeToken = await ethers.getContractFactory("MiniMeToken");
     const tokenDecimals = 18;
     token = (await MiniMeToken.deploy(
@@ -108,14 +104,6 @@ describe("Voting", function () {
       toDecimals(10, tokenDecimals)
     );
     await token.generateTokens(voter.address, toDecimals(10, tokenDecimals));
-
-    /*
-      Change Chi Gastoken contract bytecode to point to a mock version
-      to avoid revert errors when calling chi.approve() during voting
-      contract initialization
-    */
-    const chiAddress = await voting.chi();
-    await setBytecode(chiAddress, FreeFromUpToMock.bytecode);
 
     await voting.initialize(
       token.address,
