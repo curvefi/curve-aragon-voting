@@ -12,33 +12,12 @@ import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
 import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
 
-import "../biconomy/BasicMetaTransaction.sol";
-
-
-interface IFreeFromUpTo {
-    function freeFromUpTo(address from, uint256 value) external returns (uint256 freed);
-    function balanceOf(address account) external view returns (uint256);
-    function approve(address spender, uint256 amount) external returns (bool);
-}
-
-contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
+contract Voting is IForwarder, AragonApp {
     using SafeMath for uint256;
     using SafeMath64 for uint64;
 
-    IFreeFromUpTo public constant chi = IFreeFromUpTo(0x0000000000004946c0e9F43F4Dee607b0eF1fA1c);
-
-    modifier discountCHI {
-        uint256 gasStart = gasleft();
-        _;
-        uint256 gasSpent = 21000 + gasStart - gasleft() + 16 *
-                           msg.data.length;
-        if(chi.balanceOf(address(this)) > 0) {
-            chi.freeFromUpTo(address(this), (gasSpent + 14154) / 41947);
-        }
-        else {
-            chi.freeFromUpTo(msgSender(), (gasSpent + 14154) / 41947);
-        }
-    }
+    uint128 private constant MAX_UINT_128 = 2 ** 128 - 1;
+    uint128 private constant MAX_UINT_64 = 2 ** 64 - 1;
 
     bytes32 public constant CREATE_VOTES_ROLE = 0xe7dcd7275292e064d090fbc5f3bd7995be23b502c1fed5cd94cfddbbdcd32bbc; //keccak256("CREATE_VOTES_ROLE");
     bytes32 public constant MODIFY_SUPPORT_ROLE = 0xda3972983e62bdf826c4b807c4c9c2b8a941e1f83dfa76d53d6aeac11e1be650; //keccak256("MODIFY_SUPPORT_ROLE");
@@ -60,11 +39,12 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
+    string private constant ERROR_MALFORMED_CONTINUOUS_VOTE = "MALFORMED_CONTINUOUS_VOTE";
     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
 
-    enum VoterState { Absent, Yea, Nay }
+    enum VoterState { Absent, Yea, Nay, Even }
 
     struct Vote {
         bool executed;
@@ -186,8 +166,6 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
         emit MinimumTimeSet(minTime);
 
         enableVoteCreation = true;
-
-        require(chi.approve(address(this), uint256(-1)));
     }
 
     /**
@@ -279,16 +257,49 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     }
 
     /**
-    * @notice Vote `_supports ? 'yes' : 'no'` in vote #`_voteId`
+    * @notice Vote a percentage value in favor of a vote
+    * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
+    *      created via `newVote(),` which requires initialization
+    * @param _voteData Packed vote data containing both voteId and the vote in favor percentage (where 0 is no, and 1e18 is yes)
+    *          Vote data packing
+    * |  yeaPct  |  nayPct  |   voteId  |
+    * |  64b     |  64b     |   128b    |
+    * @param _supports Whether voter supports the vote (preserved for backward compatibility purposes)
+    * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
+    */
+    function vote(uint256 _voteData, bool _supports, bool _executesIfDecided) external voteExists(_decodeData(_voteData, 0, MAX_UINT_128)) {
+        uint256 voteId = _decodeData(_voteData, 0, MAX_UINT_128);
+        uint256 nayPct = _decodeData(_voteData, 128, MAX_UINT_64);
+        uint256 yeaPct = _decodeData(_voteData, 192, MAX_UINT_64);
+
+        require(_canVote(voteId, msg.sender), ERROR_CAN_NOT_VOTE);
+
+        if (yeaPct == 0 && nayPct == 0) {
+            // Keep backwards compatibility
+            if (_supports) {
+                yeaPct = PCT_BASE;
+            } else {
+                nayPct = PCT_BASE;
+            }
+        } else {
+            require(!_supports && yeaPct.add(nayPct) <= PCT_BASE, ERROR_MALFORMED_CONTINUOUS_VOTE);
+        }
+        _vote(voteId, yeaPct, nayPct, msg.sender, _executesIfDecided);
+    }
+
+    /**
+    * @notice Vote `@formatPct(_yeaPct)`% in favor and `@formatPct(_nayPct)`% against of vote #`_voteId`
     * @dev Initialization check is implicitly provided by `voteExists()` as new votes can only be
     *      created via `newVote(),` which requires initialization
     * @param _voteId Id for vote
-    * @param _supports Whether voter supports the vote
+    * @param _yeaPct Percentage of support, where 0 is no support, and 1e18 is total support
+    * @param _nayPct Percentage of opposition, where 0 is no oposition, and 1e18 is total oposition
     * @param _executesIfDecided Whether the vote should execute its action if it becomes decided
     */
-    function vote(uint256 _voteId, bool _supports, bool _executesIfDecided) external voteExists(_voteId) {
-        require(_canVote(_voteId, msgSender()), ERROR_CAN_NOT_VOTE);
-        _vote(_voteId, _supports, msgSender(), _executesIfDecided);
+    function votePct(uint256 _voteId, uint256 _yeaPct, uint256 _nayPct, bool _executesIfDecided) external voteExists(_voteId) {
+        require(_canVote(_voteId, msg.sender), ERROR_CAN_NOT_VOTE);
+        require(_yeaPct.add(_nayPct) <= PCT_BASE, ERROR_MALFORMED_CONTINUOUS_VOTE);
+        _vote(_voteId, _yeaPct, _nayPct, msg.sender, _executesIfDecided);
     }
 
     /**
@@ -318,7 +329,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     * @param _evmScript Start vote with script
     */
     function forward(bytes _evmScript) public {
-        require(canForward(msgSender(), _evmScript), ERROR_CAN_NOT_FORWARD);
+        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
         _newVote(_evmScript, "", true, true);
     }
 
@@ -420,7 +431,7 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
     * @return voteId id for newly created vote
     */
     function _newVote(bytes _executionScript, string _metadata, bool _castVote, bool _executesIfDecided) internal returns (uint256 voteId) {
-        require(canCreateNewVote(msgSender()));
+        require(canCreateNewVote(msg.sender));
         uint64 snapshotBlock = getBlockNumber64() - 1; // avoid double voting in this very block
         uint256 votingPower = token.totalSupplyAt(snapshotBlock);
         require(votingPower > 0, ERROR_NO_VOTING_POWER);
@@ -435,19 +446,19 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
         vote_.votingPower = votingPower;
         vote_.executionScript = _executionScript;
 
-        emit StartVote(voteId, msgSender(), _metadata, minBalance, minTime, token.totalSupply(), token.balanceOfAt(msgSender(), snapshotBlock));
+        emit StartVote(voteId, msg.sender, _metadata, minBalance, minTime, token.totalSupply(), token.balanceOfAt(msg.sender, snapshotBlock));
 
-        lastCreateVoteTimes[msgSender()] = getTimestamp64();
+        lastCreateVoteTimes[msg.sender] = getTimestamp64();
 
-        if (_castVote && _canVote(voteId, msgSender())) {
-            _vote(voteId, true, msgSender(), _executesIfDecided);
+        if (_castVote && _canVote(voteId, msg.sender)) {
+            _vote(voteId, PCT_BASE, 0, msg.sender, _executesIfDecided);
         }
     }
 
     /**
     * @dev Internal function to cast a vote. It assumes the queried vote exists.
     */
-    function _vote(uint256 _voteId, bool _supports, address _voter, bool _executesIfDecided) internal {
+    function _vote(uint256 _voteId, uint256 _yeaPct, uint256 _nayPct, address _voter, bool _executesIfDecided) internal {
         Vote storage vote_ = votes[_voteId];
 
         VoterState state = vote_.voters[_voter];
@@ -459,15 +470,24 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
             voterStake = balance;
         }
 
-        if (_supports) {
-            vote_.yea = vote_.yea.add(voterStake);
-        } else {
-            vote_.nay = vote_.nay.add(voterStake);
+        uint256 yea = voterStake.mul(_yeaPct).div(PCT_BASE);
+        uint256 nay = voterStake.mul(_nayPct).div(PCT_BASE);
+
+        if (yea > 0) {
+            vote_.yea = vote_.yea.add(yea);
+        }
+        if (nay > 0) {
+            vote_.nay = vote_.nay.add(nay);
         }
 
-        vote_.voters[_voter] = _supports ? VoterState.Yea : VoterState.Nay;
+        vote_.voters[_voter] = yea == nay ? VoterState.Even : yea > nay ? VoterState.Yea : VoterState.Nay;
 
-        emit CastVote(_voteId, _voter, _supports, voterStake);
+        if (yea > 0) {
+          emit CastVote(_voteId, _voter, true, yea);
+        }
+        if (nay > 0) {
+          emit CastVote(_voteId, _voter, false, nay);
+        }
 
         if (_executesIfDecided && _canExecute(_voteId)) {
             // We've already checked if the vote can be executed with `_canExecute()`
@@ -561,5 +581,15 @@ contract Voting is IForwarder, AragonApp, BasicMetaTransaction {
 
         uint256 computedPct = _value.mul(PCT_BASE) / _total;
         return computedPct > _pct;
+    }
+
+    /**
+    * @dev Decodes data by performing bitwise operations.
+    * @param _value Value containing the data
+    * @param _shiftValue Number of bits to shift to the right
+    * @param _maskValue Number of bits to apply as a mask to the value
+     */
+    function _decodeData(uint256 _value, uint256 _shiftValue, uint256 _maskValue) internal pure returns(uint256) {
+        return uint256((_value >> _shiftValue) & _maskValue);
     }
 }

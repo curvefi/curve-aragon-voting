@@ -7,7 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "chain": "hardhat node",
+    "test": "hardhat test",
+    "publish:major": "hardhat publish major",
+    "publish:minor": "hardhat publish minor",
+    "publish:patch": "hardhat publish patch"
   },
   "repository": {
     "type": "git",
@@ -23,5 +28,25 @@
     "@aragon/apps-shared-minime": "^1.0.2",
     "@aragon/os": "^4.4.0",
     "@openzeppelin/contracts": "^3.2.0"
+  },
+  "devDependencies": {
+    "@1hive/hardhat-aragon": "^0.1.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@typechain/ethers-v5": "^8.0.2",
+    "@typechain/hardhat": "^3.0.0",
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.7",
+    "chai": "^4.2.0",
+    "dotenv": "^9.0.2",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.1.4",
+    "hardhat": "^2.6.5",
+    "hardhat-deploy": "^0.9.3",
+    "ts-generator": "^0.1.1",
+    "ts-node": "^10.4.0",
+    "typechain": "^6.0.2",
+    "typescript": "^4.4.4"
   }
 }
