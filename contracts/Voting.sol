@@ -10,7 +10,7 @@ import "@aragon/os/contracts/common/IForwarder.sol";
 import "@aragon/os/contracts/lib/math/SafeMath.sol";
 import "@aragon/os/contracts/lib/math/SafeMath64.sol";
 
-import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
+import {IVotingEscrow} from "./IVotingEscrow.sol";
 
 contract Voting is IForwarder, AragonApp {
     using SafeMath for uint256;
@@ -59,7 +59,7 @@ contract Voting is IForwarder, AragonApp {
         mapping (address => VoterState) voters;
     }
 
-    MiniMeToken public token;
+    IVotingEscrow public token;
     uint64 public supportRequiredPct;
     uint64 public minAcceptQuorumPct;
     uint64 public voteTime;
@@ -110,7 +110,7 @@ contract Voting is IForwarder, AragonApp {
 
     /**
     * @notice Initialize Voting app with `_token.symbol(): string` for governance, minimum support of `@formatPct(_supportRequiredPct)`%, minimum acceptance quorum of `@formatPct(_minAcceptQuorumPct)`%, and a voting duration of `@transformTime(_voteTime)`
-    * @param _token MiniMeToken Address that will be used as governance token
+    * @param _token VotingEscrow Address that will be used as governance token
     * @param _supportRequiredPct Percentage of yeas in casted votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _minAcceptQuorumPct Percentage of yeas in total possible votes for a vote to succeed (expressed as a percentage of 10^18; eg. 10^16 = 1%, 10^18 = 100%)
     * @param _voteTime Seconds that a vote will be open for token holders to vote (unless enough yeas or nays have been cast to make an early decision)
@@ -120,7 +120,7 @@ contract Voting is IForwarder, AragonApp {
     * @param _minTimeLowerLimit Hardcoded lower limit for _minTime on initialization
     * @param _minTimeUpperLimit Hardcoded upper limit for _minTime on initialization
     */
-    function initialize(MiniMeToken _token, 
+    function initialize(IVotingEscrow _token, 
         uint64 _supportRequiredPct, 
         uint64 _minAcceptQuorumPct, 
         uint64 _voteTime,
@@ -367,7 +367,7 @@ contract Voting is IForwarder, AragonApp {
     }
 
     function canCreateNewVote(address _sender) public view returns(bool) {
-        return enableVoteCreation && token.balanceOf(_sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[_sender];
+        return enableVoteCreation && token.votingPowerOf(_sender) >= minBalance &&  block.timestamp.sub(minTime) >= lastCreateVoteTimes[_sender];
     }
 
     /**
@@ -446,7 +446,7 @@ contract Voting is IForwarder, AragonApp {
         vote_.votingPower = votingPower;
         vote_.executionScript = _executionScript;
 
-        emit StartVote(voteId, msg.sender, _metadata, minBalance, minTime, token.totalSupply(), token.balanceOfAt(msg.sender, snapshotBlock));
+        emit StartVote(voteId, msg.sender, _metadata, minBalance, minTime, token.totalSupply(), token.votingPowerOfAtBlk(msg.sender, snapshotBlock));
 
         lastCreateVoteTimes[msg.sender] = getTimestamp64();
 
@@ -464,7 +464,7 @@ contract Voting is IForwarder, AragonApp {
         VoterState state = vote_.voters[_voter];
         require(state == VoterState.Absent, "Can't change votes");
         // This could re-enter, though we can assume the governance token is not malicious
-        uint256 balance = token.balanceOfAt(_voter, vote_.snapshotBlock);
+        uint256 balance = token.votingPowerOfAtBlk(_voter, vote_.snapshotBlock);
         uint256 voterStake = uint256(2).mul(balance).mul(vote_.startDate.add(voteTime).sub(getTimestamp64())).div(voteTime);
         if(voterStake > balance) {
             voterStake = balance;
@@ -560,7 +560,7 @@ contract Voting is IForwarder, AragonApp {
     */
     function _canVote(uint256 _voteId, address _voter) internal view returns (bool) {
         Vote storage vote_ = votes[_voteId];
-        return _isVoteOpen(vote_) && token.balanceOfAt(_voter, vote_.snapshotBlock) > 0;
+        return _isVoteOpen(vote_) && token.votingPowerOfAtBlk(_voter, vote_.snapshotBlock) > 0;
     }
 
     /**
